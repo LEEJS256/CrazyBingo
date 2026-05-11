@@ -1,0 +1,24 @@
+﻿# 디폴트 무시된 파일
+/shelf/
+/workspace.xml
+# Rider에서 무시된 파일
+/contentModel.xml
+/projectSettingsUpdater.xml
+/.idea.CrazyBingo.iml
+/modules.xml
+# 에디터 기반 HTTP 클라이언트 요청
+/httpRequests/
+/Saved/
+/Intermediate/
+/DerivedDataCache/
+/Binaries/
+/Content/ModernFlatGUIPack/
+/Content/Developers/
+/Content/Collections/
+/Content/__ExternalObjects__/
+/Content/__ExternalActors__/
+
+
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml
