@@ -12,11 +12,17 @@
 /Intermediate/
 /DerivedDataCache/
 /Binaries/
+
 /Content/ModernFlatGUIPack/
 /Content/Developers/
 /Content/Collections/
 /Content/__ExternalObjects__/
 /Content/__ExternalActors__/
+/Content/kenney_ui-pack/
+/Content/kenney_ui-pack-adventure/
+/Content/kenney_ui-pack-rpg-expansion/
+/Content/kenney_ui-pack-space-expansion/
+
 
 
 # Datasource local storage ignored files
