@@ -36,6 +36,8 @@ void UCB_BingoBoard::InitBoard()
 		UUniformGridSlot* NewSlot = BingoGrid->AddChildToUniformGrid(Cell);
 		NewSlot->SetRow(i / 5);
 		NewSlot->SetColumn(i % 5);
+		NewSlot->SetHorizontalAlignment(HAlign_Fill);
+		NewSlot->SetVerticalAlignment(VAlign_Fill);
 
 		Cells.Add(Cell);
 	}
