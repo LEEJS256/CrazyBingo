@@ -41,5 +41,8 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* NumberText;
 
+	UPROPERTY(meta = (BindWidget))
+	class UImage* CellImage;
+
 	
 };
