@@ -39,4 +39,16 @@ protected:
 	TArray<class UCB_BingoCell*> Cells;
 
 	int32 BingoCount = 0;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_Team1Score;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_Team2Score;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_TeamName_1;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_TeamName_2;
 };
