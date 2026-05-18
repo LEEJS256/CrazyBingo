@@ -46,4 +46,7 @@ protected:
 
 	UFUNCTION()
 	void OnQuitClicked();
+
+private:
+	void SetupButtonStyle(UButton* pButton , FLinearColor Normal, FLinearColor Hovered, FLinearColor Pressed);
 };
