@@ -3,11 +3,13 @@
 
 #include "GameMode/CB_GameMode.h"
 
+#include "GameState/CB_GameState.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/CB_BingoBoard.h"
 
 ACB_GameMode::ACB_GameMode()
 {
+	GameStateClass = ACB_GameState::StaticClass();
 }
 
 void ACB_GameMode::BeginPlay()
