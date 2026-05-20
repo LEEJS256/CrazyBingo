@@ -4,7 +4,16 @@
 #include "UI/CB_MainMenu.h"
 
 #include "Components/Button.h"
+#include "Components/WidgetSwitcher.h"
 #include "Kismet/GameplayStatics.h"
+
+void UCB_MainMenu::SwitchToPage(int32 PageIndex)
+{
+	if (MenuSwitcher)
+	{
+		MenuSwitcher->SetActiveWidgetIndex(PageIndex);
+	}
+}
 
 void UCB_MainMenu::NativeConstruct()
 {
@@ -14,7 +23,7 @@ void UCB_MainMenu::NativeConstruct()
 	if (EditButton)
 		EditButton->OnClicked.AddDynamic(this, &UCB_MainMenu::OnEditClicked);
 	if (SettingButton)
-		SettingButton->OnClicked.AddDynamic(this, &UCB_MainMenu::OnQuitClicked);
+		SettingButton->OnClicked.AddDynamic(this, &UCB_MainMenu::OnSettingClicked);
 	if (QuitButton)
 		QuitButton->OnClicked.AddDynamic(this, &UCB_MainMenu::OnQuitClicked);
 
@@ -51,7 +60,7 @@ void UCB_MainMenu::OnStartClicked()
 
 void UCB_MainMenu::OnEditClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Edit Clicked"));
+	SwitchToPage(1);
 }
 
 void UCB_MainMenu::OnSettingClicked()

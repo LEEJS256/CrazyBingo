@@ -13,7 +13,10 @@ UCLASS()
 class CRAZYBINGO_API UCB_MainMenu : public UUserWidget
 {
 	GENERATED_BODY()
-
+public:
+	// 외부(자식 위젯)에서 화면을 바꿀 수 있도록 열어주는 함수
+	void SwitchToPage(int32 PageIndex);
+	
 protected:
 	virtual void NativeConstruct() override;
 
@@ -23,6 +26,13 @@ protected:
 	// UPROPERTY(meta = (BindWidget))
 	// class UTextBlock* TitleText;
 
+
+	UPROPERTY(meta = (BindWidget))
+	class UWidgetSwitcher* MenuSwitcher;
+
+	UPROPERTY(meta = (BindWidget))
+	class UCB_AddQuestion* WBP_QuestionEditor;
+	
 	UPROPERTY(meta = (BindWidget))
 	class UButton* StartButton;
 
