@@ -36,4 +36,27 @@ public:
 	// 랜덤 25개 뽑기
 	UFUNCTION(BlueprintCallable)
 	TArray<FCB_DataTable_Question> GetRandomQuestions(int32 Count = 25);
+
+	
+#pragma region SaveData
+public:
+	// 게임 시작 시 호출되는 초기화 함수 (여기서 자동 로드)
+	virtual void Init() override;
+
+	// 현재 메모리(런타임)에서 관리할 문제 리스트 마스터 배열
+	UPROPERTY(BlueprintReadWrite, Category = "Quiz")
+	TArray<FCB_DataTable_Question> QuizMasterList;
+
+	// 런타임 배열을 파일로 저장하는 함수
+	UFUNCTION(BlueprintCallable, Category = "Quiz|Save")
+	void SaveQuizDataToFile();
+
+	// 파일에서 데이터를 읽어와 런타임 배열에 채우는 함수
+	UFUNCTION(BlueprintCallable, Category = "Quiz|Save")
+	void LoadQuizDataFromFile();
+	
+#pragma endregion 
+private:
+	const FString SaveSlotName = TEXT("CrazyBingo_QuizSlot");
+	const int32 UserIndex = 0;
 };
