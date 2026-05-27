@@ -21,13 +21,13 @@ protected:
     // 1. 입력 UI 컴포넌트 (구조체 멤버 변수들과 매핑)
     // =========================================================================
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* CategoryInput;
+    class UEditableText* CategoryInput;
 
     UPROPERTY(meta = (BindWidget))
     class UComboBoxString* QuestionTypeComboBox;
 
     UPROPERTY(meta = (BindWidget))
-    class UEditableText* QuestionTextInput; // 멀티라인은 UEditableText 사용 권장
+    class UMultiLineEditableText* QuestionTextInput; // 멀티라인은 UEditableText 사용 권장
 
     UPROPERTY(meta = (BindWidget))
     class UEditableTextBox* YoutubeURLInput;
@@ -55,7 +55,7 @@ protected:
     class USpinBox* ScoreSpinBox;
 
     UPROPERTY(meta = (BindWidget))
-    class UEditableText* ExplanationInput;
+    class UEditableTextBox* ExplanationInput;
 
     // 특정 타입 선택 시 관련 입력창만 켜고 끄기 위한 위젯 스위처
     UPROPERTY(meta = (BindWidget))
@@ -78,6 +78,11 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UButton* BackToMenuButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_SaveQuiz;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_LoadQuiz;
 
     // =========================================================================
     // 3. 내부 이벤트 처리 함수
@@ -94,6 +99,12 @@ protected:
     UFUNCTION()
     void OnBackToMenuClicked();
 
+	UFUNCTION()
+	void OnSaveButtonClicked();
+
+	UFUNCTION()
+	void OnLoadButtonClicked();
+
 private:
     // UI 초기화용 (ComboBox 아이템 세팅 등)
     void InitializeUI();
@@ -103,5 +114,7 @@ private:
 
     // 리스트뷰 갱신용 함수
     void RefreshListView();
+
+	void ClearInputFields(); // 문제 추가 후 입력창을 비워주는 편의 함수
 	
 };
