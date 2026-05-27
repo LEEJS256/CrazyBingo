@@ -21,6 +21,9 @@ USTRUCT(BlueprintType)
 struct FCB_DataTable_Question : public FTableRowBase
 {
 	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadWrite, Category = "Quiz|UI")
+	bool bIsCheckedForDelete = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Category = TEXT("");
