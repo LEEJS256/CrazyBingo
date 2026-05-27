@@ -15,11 +15,34 @@ class CRAZYBINGO_API UCB_QuestionListRow : public UUserWidget , public IUserObje
 {
 	GENERATED_BODY()
 protected:
+	UPROPERTY(meta = (BindWidget))
+	class UCheckBox* Delete_CheckBox;
+	
+	virtual void NativeConstruct() override;
+	virtual void NativeOnItemSelectionChanged(bool bIsSelected) override;
+
+	UFUNCTION()
+	void OnDeleteCheckBoxChanged(bool bIsChecked);
+	
 	// 리스트뷰 목록에 간단하게 띄울 텍스트 (예: "[객관식] 1번 문제 제목입니다.")
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* QuestionTitleText;
 
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* QuestionTypeText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* QuestionCategoryText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* QuestionScoreText;
+	
 	// --- IUserObjectListEntry 인터페이스 구현 ---
 	// 데이터가 이 위젯에 할당될 때 자동으로 호출되는 함수입니다.
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
+
+private:
+	// 현재 이 행이 들고 있는 데이터 오브젝트를 보관
+	UPROPERTY()
+	class UCB_QuestionListData* MyDataObj = nullptr;
 };
