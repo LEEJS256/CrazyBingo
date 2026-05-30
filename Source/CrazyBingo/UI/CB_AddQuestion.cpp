@@ -5,6 +5,7 @@
 
 #include "CB_MainMenu.h"
 #include "CB_QuestionListData.h"
+#include "CB_SaveDialog.h"
 #include "Components/Button.h"
 #include "Components/ComboBoxString.h"
 #include "Components/EditableText.h"
@@ -156,20 +157,43 @@ void UCB_AddQuestion::OnBackToMenuClicked()
 
 void UCB_AddQuestion::OnSaveButtonClicked()
 {
-	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
-	if (!GI)
+	// UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
+	// if (!GI)
+	// 	return;
+	//
+	// // 디버깅 로그: 저장하려는 순간 임시 배열에 데이터가 있는지 확인
+	// UE_LOG(LogTemp, Log, TEXT("[세이브] 현재 임시 배열(TemporaryQuestionList) 항목 개수: %d개"), TemporaryQuestionList.Num());
+	//
+	// // 1. 현재 UI 클래스에서 관리 중인 원본 배열 데이터를 GameInstance 마스터 리스트로 통째로 이관합니다.
+	// GI->QuizMasterList = TemporaryQuestionList;
+	//
+	// // 2. GameInstance에 구현된 파일 저장 함수 호출 (.sav 파일로 쓰기)
+	// GI->SaveQuizDataToFile();
+ //    
+	// UE_LOG(LogTemp, Log, TEXT("[세이브 성공] 총 %d개의 문제가 안전하게 세이브 파일로 저장되었습니다."), GI->QuizMasterList.Num());
+
+	if (!SaveDialogClass)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[메인 에러] SaveDialogClass가 지정되지 않았습니다."));
 		return;
+	}
 
-	// 디버깅 로그: 저장하려는 순간 임시 배열에 데이터가 있는지 확인
-	UE_LOG(LogTemp, Log, TEXT("[세이브] 현재 임시 배열(TemporaryQuestionList) 항목 개수: %d개"), TemporaryQuestionList.Num());
+	APlayerController* PC = GetOwningPlayer();
+	if (!PC) return;
 
-	// 1. 현재 UI 클래스에서 관리 중인 원본 배열 데이터를 GameInstance 마스터 리스트로 통째로 이관합니다.
-	GI->QuizMasterList = TemporaryQuestionList;
+	// 1. 팝업창 생성 (타입을 UCB_SaveDialog로 캐스팅해서 가져옵니다)
+	UCB_SaveDialog* SaveDialog = CreateWidget<UCB_SaveDialog>(PC, SaveDialogClass);
+	if (SaveDialog)
+	{
+		// 2. 🌟 생성 직후 팝업창에게 메인 화면인 내 주소(this)를 넘겨줍니다.
+		SaveDialog->SetOwningWidget(this);
 
-	// 2. GameInstance에 구현된 파일 저장 함수 호출 (.sav 파일로 쓰기)
-	GI->SaveQuizDataToFile();
-    
-	UE_LOG(LogTemp, Log, TEXT("[세이브 성공] 총 %d개의 문제가 안전하게 세이브 파일로 저장되었습니다."), GI->QuizMasterList.Num());
+		// 3. 화면 배치 및 목록 갱신
+		SaveDialog->AddToViewport(100);
+		SaveDialog->RefreshSaveFileList();
+
+		UE_LOG(LogTemp, Log, TEXT("[메인] 팝업창에 주소 이관 완료 후 화면에 표시합니다."));
+	}
 }
 
 void UCB_AddQuestion::OnLoadButtonClicked()
@@ -206,21 +230,34 @@ void UCB_AddQuestion::InitializeUI()
 
 void UCB_AddQuestion::RefreshListView()
 {
-	if (!QuestionListView)
-		return;
+	UListView* TargetListView = QuestionListView;
+	if (!TargetListView)
+	{
+		TargetListView = Cast<UListView>(GetWidgetFromName(TEXT("QuestionListView")));
+	}
 
-	QuestionListView->ClearListItems();
+	if (!TargetListView)
+	{
+		UE_LOG(LogTemp, Error, TEXT("[메인 에러] RefreshListView 시점에 QuestionListView를 찾을 수 없습니다!"));
+		return;
+	}
+
+	// 화면 초기화
+	TargetListView->ClearListItems();
+
+	UE_LOG(LogTemp, Log, TEXT("[메인] 복원할 문제 데이터 개수: %d개"), TemporaryQuestionList.Num());
 
 	// 가공해둔 런타임 구조체 배열을 순회하며 ListView용 UObject로 변환 및 등록
 	for (int32 i = 0; i < TemporaryQuestionList.Num(); ++i)
 	{
-		// 데이터 래핑 오브젝트 동적 생성
 		UCB_QuestionListData* NewDataObj = NewObject<UCB_QuestionListData>(this);
 		NewDataObj->QuestionData = TemporaryQuestionList[i];
 
-		// 리스트뷰에 장전 (이제 ListView가 Row UI 위젯을 자동 생성함)
-		QuestionListView->AddItem(NewDataObj);
+		// 확실하게 찾아온 리스트뷰에 주입
+		TargetListView->AddItem(NewDataObj);
 	}
+    
+	UE_LOG(LogTemp, Log, TEXT("[메인] 리스트뷰 화면 갱신 완료."));
 	
 }
 

@@ -84,6 +84,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_LoadQuiz;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+	TSubclassOf<UUserWidget> SaveDialogClass;
+
     // =========================================================================
     // 3. 내부 이벤트 처리 함수
     // =========================================================================
@@ -104,16 +107,16 @@ protected:
 
 	UFUNCTION()
 	void OnLoadButtonClicked();
-
+public:
+    // 임시로 런타임 데이터를 들고 있을 배열 (나중에 SaveGame이나 파일로 저장할 타겟)
+    TArray<FCB_DataTable_Question> TemporaryQuestionList;
+    // 리스트뷰 갱신용 함수
+    void RefreshListView();
 private:
     // UI 초기화용 (ComboBox 아이템 세팅 등)
     void InitializeUI();
 
-    // 임시로 런타임 데이터를 들고 있을 배열 (나중에 SaveGame이나 파일로 저장할 타겟)
-    TArray<FCB_DataTable_Question> TemporaryQuestionList;
 
-    // 리스트뷰 갱신용 함수
-    void RefreshListView();
 
 	void ClearInputFields(); // 문제 추가 후 입력창을 비워주는 편의 함수
 	
