@@ -54,7 +54,13 @@ public:
 	// 파일에서 데이터를 읽어와 런타임 배열에 채우는 함수
 	UFUNCTION(BlueprintCallable, Category = "Quiz|Save")
 	void LoadQuizDataFromFile();
-	
+
+
+	UPROPERTY(BlueprintReadWrite, Category = "Quiz|Save")
+	FString CurrentSaveSlotName = TEXT("DefaultQuizSlot");
+
+
+
 #pragma endregion 
 private:
 	const FString SaveSlotName = TEXT("CrazyBingo_QuizSlot");
