@@ -72,6 +72,9 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UButton* AddButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* ModifyButton;
+	
     UPROPERTY(meta = (BindWidget))
     class UButton* DeleteButton;
 
@@ -81,8 +84,17 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_SaveQuiz;
 	
+	// UPROPERTY(meta = (BindWidget))
+	// class UButton* Btn_LoadQuiz;
+
 	UPROPERTY(meta = (BindWidget))
-	class UButton* Btn_LoadQuiz;
+	class UButton* Btn_SelectAll;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_UnselectAll;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_ModifySelected;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> SaveDialogClass;
@@ -93,6 +105,12 @@ protected:
     UFUNCTION()
     void OnQuestionTypeChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
+	UFUNCTION()
+	void OnModifySelectedClicked();
+
+	UFUNCTION()
+	void OnModifyButtonClicked();
+	
     UFUNCTION()
     void OnAddClicked();
 
@@ -105,8 +123,15 @@ protected:
 	UFUNCTION()
 	void OnSaveButtonClicked();
 
+	// UFUNCTION()
+	// void OnLoadButtonClicked();
+
 	UFUNCTION()
-	void OnLoadButtonClicked();
+	void OnSelectAllClicked();
+
+	UFUNCTION()
+	void OnUnselectAllClicked();
+	
 public:
     // 임시로 런타임 데이터를 들고 있을 배열 (나중에 SaveGame이나 파일로 저장할 타겟)
     TArray<FCB_DataTable_Question> TemporaryQuestionList;
@@ -115,9 +140,8 @@ public:
 private:
     // UI 초기화용 (ComboBox 아이템 세팅 등)
     void InitializeUI();
-
-
-
 	void ClearInputFields(); // 문제 추가 후 입력창을 비워주는 편의 함수
+
+	int32 CurrentEditingIndex = INDEX_NONE;
 	
 };
