@@ -29,6 +29,8 @@ void UCB_SaveDialog::NativeConstruct()
 
 	if (Btn_Load)
 		Btn_Load->OnClicked.AddDynamic(this, &UCB_SaveDialog::OnLoadClicked);
+	if (Btn_DeleteSelectedSave)
+		Btn_DeleteSelectedSave->OnClicked.AddDynamic(this, &UCB_SaveDialog::OnDeleteSelectedSaveClicked);
 	// 창이 켜질 때 목록 새로고침
 	RefreshSaveFileList();
 }
@@ -40,6 +42,57 @@ void UCB_SaveDialog::OnSlotItemClicked(UObject* Item)
 	{
 		// 클릭한 기존 파일명이 텍스트박스에 자동으로 입력됩니다. (이 상태로 저장하면 덮어쓰기가 됨!)
 		NewFileNameInput->SetText(FText::FromString(ClickedData->SlotName));
+	}
+}
+
+void UCB_SaveDialog::OnDeleteSelectedSaveClicked()
+{
+	if (!SaveFileList) return;
+
+	// 1. 현재 리스트뷰에 장전된 모든 세이브 데이터 주머니들을 가져옵니다.
+	TArray<UObject*> AllItems = SaveFileList->GetListItems();
+    
+	// 세이브 폴더의 절대 경로 확보
+	FString AbsoluteSaveDir = FPaths::ConvertRelativePathToFull(FPaths::ProjectSavedDir() + TEXT("SaveGames/"));
+    
+	bool bAnyFileDeleted = false;
+
+	// 2. 루프를 돌며 체크박스가 켜진(bIsSelected == true) 파일들을 찾아 냅니다.
+	for (UObject* Item : AllItems)
+	{
+		UCB_SaveSlotData* SlotData = Cast<UCB_SaveSlotData>(Item);
+		if (SlotData && SlotData->bIsSelected)
+		{
+			// 3. 파일의 실제 절대 경로 조립 (예: D:/.../SaveGames/test_04.sav)
+			FString TargetFilePath = AbsoluteSaveDir + SlotData->SlotName + TEXT(".sav");
+
+			IFileManager& FileManager = IFileManager::Get();
+            
+			// 4. 하드디스크에 진짜 파일이 존재하는지 확인 후 물리적 삭제 진행
+			if (FileManager.FileExists(*TargetFilePath))
+			{
+				if (FileManager.Delete(*TargetFilePath))
+				{
+					UE_LOG(LogTemp, Log, TEXT("[팝업] 하드디스크에서 [%s.sav] 파일을 성공적으로 삭제했습니다."), *SlotData->SlotName);
+					bAnyFileDeleted = true;
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("[팝업 에러] [%s.sav] 파일 삭제에 실패했습니다. (권한 문제 등)"), *SlotData->SlotName);
+				}
+			}
+		}
+	}
+
+	// 5. 🌟 파일을 지웠다면 목록을 새로고침해서 화면에서 안 보이게 만듭니다.
+	if (bAnyFileDeleted)
+	{
+		RefreshSaveFileList();
+		UE_LOG(LogTemp, Log, TEXT("[팝업] 세이브 파일 삭제 후 목록 갱신 완료."));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[팝업 경고] 삭제할 세이브 파일이 체크되지 않았습니다."));
 	}
 }
 

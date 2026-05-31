@@ -20,11 +20,11 @@ void UCB_QuestionListRow::OnDeleteCheckBoxChanged(bool bIsChecked)
 void UCB_QuestionListRow::NativeConstruct()
 {
 	Super::NativeConstruct();
-	if (Delete_CheckBox)
-	{
-		// 체크박스 이벤트 바인딩
-		Delete_CheckBox->OnCheckStateChanged.AddDynamic(this, &UCB_QuestionListRow::OnDeleteCheckBoxChanged);
-	}
+	// if (Delete_CheckBox)
+	// {
+	// 	// 체크박스 이벤트 바인딩
+	// 	Delete_CheckBox->OnCheckStateChanged.AddDynamic(this, &UCB_QuestionListRow::OnDeleteCheckBoxChanged);
+	// }
 }
 
 void UCB_QuestionListRow::NativeOnItemSelectionChanged(bool bIsSelected)
@@ -39,59 +39,44 @@ void UCB_QuestionListRow::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 
-
 	MyDataObj = Cast<UCB_QuestionListData>(ListItemObject);
-	if (!MyDataObj)
-		return;
+	if (!MyDataObj) return;
 
-	UCB_QuestionListData* DataObj = Cast<UCB_QuestionListData>(ListItemObject);
-	if (!DataObj || !QuestionTitleText) return;
-
-	// 퀴즈 타입 이름 뽑아오기 (예: MultipleChoice -> 객관식)
-	FString TypeStr = TEXT("");
-	switch (DataObj->QuestionData.QuestionType)
+	// 🌟 [안전장치] 체크박스 이벤트 중복 방지 및 확실한 바인딩
+	if (Delete_CheckBox)
 	{
-	case ECB_QuestionType::MultipleChoice: TypeStr = TEXT("객관식");
-		break;
-	case ECB_QuestionType::InitialSound: TypeStr = TEXT("초성");
-		break;
-	case ECB_QuestionType::YoutubeLink: TypeStr = TEXT("유튜브");
-		break;
-	case ECB_QuestionType::ShortAnswer: TypeStr = TEXT("단답형");
-		break;
+		Delete_CheckBox->OnCheckStateChanged.RemoveAll(this);
+		Delete_CheckBox->OnCheckStateChanged.AddDynamic(this, &UCB_QuestionListRow::OnDeleteCheckBoxChanged);
+        
+		// 데이터 주머니의 상태를 UI에 강제 동기화
+		Delete_CheckBox->SetIsChecked(MyDataObj->bIsCheckedForDelete);
 	}
 
-	// // 텍스트 블록에 포맷 세팅 ("[객관식] 문제 내용...")
-	// FString FormattedText = FString::Printf(TEXT("[%s] %s"), *TypeStr, *DataObj->QuestionData.QuestionText);
-	// QuestionTitleText->SetText(FText::FromString(FormattedText));
-
-
+	// --- 이하 텍스트 세팅 로직은 조장님 코드 그대로 유지 ---
 	if (QuestionTitleText)
 	{
-		QuestionTitleText->SetText(FText::FromString(DataObj->QuestionData.QuestionText));
+		QuestionTitleText->SetText(FText::FromString(MyDataObj->QuestionData.QuestionText));
 	}
 
-	if (QuestionTypeText)
+	FString TypeStr = TEXT("");
+	switch (MyDataObj->QuestionData.QuestionType)
 	{
-		QuestionTypeText->SetText(FText::FromString(TypeStr));
+	case ECB_QuestionType::MultipleChoice: TypeStr = TEXT("객관식"); break;
+	case ECB_QuestionType::InitialSound: TypeStr = TEXT("초성"); break;
+	case ECB_QuestionType::YoutubeLink: TypeStr = TEXT("유튜브"); break;
+	case ECB_QuestionType::ShortAnswer: TypeStr = TEXT("단답형"); break;
 	}
+
+	if (QuestionTypeText) QuestionTypeText->SetText(FText::FromString(TypeStr));
 
 	if (QuestionCategoryText)
 	{
-		// FString 또는 FText 타입에 맞게 세팅 (여기서는 FString 혹은 FName 가정)
-		FString CategoryStr = DataObj->QuestionData.Category;
-		QuestionCategoryText->SetText(FText::FromString(CategoryStr));
+		QuestionCategoryText->SetText(FText::FromString(MyDataObj->QuestionData.Category));
 	}
 
 	if (QuestionScoreText)
 	{
-		// 정수형 점수를 문자열로 변환하여 포맷팅
-		FString ScoreStr = FString::Printf(TEXT("%d점"), DataObj->QuestionData.Score);
+		FString ScoreStr = FString::Printf(TEXT("%d점"), MyDataObj->QuestionData.Score);
 		QuestionScoreText->SetText(FText::FromString(ScoreStr));
-	}
-
-	if (Delete_CheckBox)
-	{
-		Delete_CheckBox->SetIsChecked(MyDataObj->bIsCheckedForDelete);
 	}
 }

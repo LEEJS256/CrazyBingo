@@ -39,6 +39,9 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UButton* Btn_Cancel;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_DeleteSelectedSave;
+
 
 	//불러오기
 	UPROPERTY(meta = (BindWidget))
@@ -48,6 +51,10 @@ protected:
 	UFUNCTION()
 	void OnSlotItemClicked(UObject* Item);
 
+	//세이브 데이터 삭제
+	UFUNCTION()
+	void OnDeleteSelectedSaveClicked();
+	
 	//저장 ,덮어쓰기
 	UFUNCTION()
 	void OnConfirmClicked();
