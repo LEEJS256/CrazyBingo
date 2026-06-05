@@ -19,4 +19,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "SaveData")
 	bool bIsSelected = false;
+
+	UPROPERTY()
+	class UCB_GameSetup* OwningGameSetup;
+	
 };
