@@ -3,7 +3,9 @@
 
 #include "UI/CB_SaveSlotRow.h"
 
+#include "CB_GameSetup.h"
 #include "Components/CheckBox.h"
+#include "Components/ListView.h"
 #include "Components/TextBlock.h"
 #include "Utility/CB_SaveSlotData.h"
 
@@ -37,5 +39,17 @@ void UCB_SaveSlotRow::OnCheckBoxStateChanged(bool bIsChecked)
 	{
 		// 화면의 체크 상태를 원본 데이터 주머니에 동기화해줍니다!
 		MyItemData->bIsSelected = bIsChecked;
+
+		if (bIsChecked && MyItemData->OwningGameSetup)
+		{
+
+			if (MyItemData->OwningGameSetup->SaveFileListView)
+			{
+				MyItemData->OwningGameSetup->SaveFileListView->SetSelectedItem(MyItemData);
+			}
+
+			// ② 어제 완성했던 부모(GameSetup)의 우측 패널 정보 갱신 함수를 다이렉트로 호출합니다!
+			MyItemData->OwningGameSetup->OnSaveFileSelected(MyItemData);
+		}
 	}
 }
