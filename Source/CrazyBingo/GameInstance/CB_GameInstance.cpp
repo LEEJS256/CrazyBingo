@@ -55,6 +55,9 @@ void UCB_GameInstance::SaveQuizDataToFile()
 	UCB_QuizSaveGame* SaveGameInstance = Cast<UCB_QuizSaveGame>(UGameplayStatics::CreateSaveGameObject(UCB_QuizSaveGame::StaticClass()));
 	if (SaveGameInstance)
 	{
+		FDateTime CurrentTime = FDateTime::Now();
+		FString FormattedDate = FString::Printf(TEXT("%04d-%02d-%02d"), CurrentTime.GetYear(), CurrentTime.GetMonth(), CurrentTime.GetDay());
+		
 		// 🌟 마스터 리스트를 세이브 객체의 'SavedQuestions'에 복사
 		SaveGameInstance->SavedQuestions = QuizMasterList;
 
