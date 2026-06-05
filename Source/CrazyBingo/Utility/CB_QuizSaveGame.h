@@ -20,4 +20,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "SaveData")
 	TArray<FCB_DataTable_Question> SavedQuestions;
 
+	UPROPERTY(VisibleAnywhere, Category = "SaveData")
+	FString SaveDateTimeString;
+	
 };
