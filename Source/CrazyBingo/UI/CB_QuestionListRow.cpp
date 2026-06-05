@@ -3,6 +3,7 @@
 
 #include "UI/CB_QuestionListRow.h"
 
+#include "CB_AddQuestion.h"
 #include "CB_QuestionListData.h"
 #include "Components/CheckBox.h"
 #include "Components/ListView.h"
@@ -13,8 +14,16 @@ void UCB_QuestionListRow::OnDeleteCheckBoxChanged(bool bIsChecked)
 {
 	if (MyDataObj)
 	{
-		// 사용자가 체크를 켜고 끌 때 데이터 오브젝트에 실시간 반영
+		// 1. 데이터 주머니의 체크 상태 실시간 동기화
 		MyDataObj->bIsCheckedForDelete = bIsChecked;
+		MyDataObj->QuestionData.bIsCheckedForDelete = bIsChecked; // 구조체 원본에도 동기화
+
+
+		if (MyDataObj->OwningAddQuestion)
+		{
+	
+			MyDataObj->OwningAddQuestion->UpdateCountTextsOnly();
+		}
 	}
 }
 void UCB_QuestionListRow::NativeConstruct()
