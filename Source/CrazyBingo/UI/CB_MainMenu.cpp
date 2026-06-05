@@ -55,7 +55,8 @@ void UCB_MainMenu::NativeConstruct()
 
 void UCB_MainMenu::OnStartClicked()
 {
-	UGameplayStatics::OpenLevel(this, FName("BingoLevel"));
+	SwitchToPage(2);
+	// UGameplayStatics::OpenLevel(this, FName("BingoLevel"));
 }
 
 void UCB_MainMenu::OnEditClicked()

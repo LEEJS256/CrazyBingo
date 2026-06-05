@@ -32,6 +32,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UCB_AddQuestion* WBP_QuestionEditor;
+
+	UPROPERTY(meta = (BindWidget))
+	class UCB_GameSetup* WBP_GameSetup;
 	
 	UPROPERTY(meta = (BindWidget))
 	class UButton* StartButton;
