@@ -19,6 +19,8 @@ public:
 	// 리스트뷰 한 칸이 들고 있을 실제 퀴즈 데이터 구조체
 	FCB_DataTable_Question QuestionData;
 
+	UPROPERTY()
+	class UCB_AddQuestion* OwningAddQuestion;
 	
 	UPROPERTY(BlueprintReadWrite, Category = "Quiz")
 	bool bIsCheckedForDelete = false;
