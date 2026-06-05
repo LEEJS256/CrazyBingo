@@ -13,6 +13,7 @@
 #include "Components/ListView.h"
 #include "Components/MultiLineEditableText.h"
 #include "Components/SpinBox.h"
+#include "Components/TextBlock.h"
 #include "Components/WidgetSwitcher.h"
 #include "GameInstance/CB_GameInstance.h"
 
@@ -41,8 +42,11 @@ void UCB_AddQuestion::NativeConstruct()
 		Btn_SelectAll->OnClicked.AddDynamic(this, &UCB_AddQuestion::OnSelectAllClicked);
 	if (Btn_UnselectAll)
 		Btn_UnselectAll->OnClicked.AddDynamic(this, &UCB_AddQuestion::OnUnselectAllClicked);
-	if (Btn_ModifySelected)
-		Btn_ModifySelected->OnClicked.AddDynamic(this, &UCB_AddQuestion::OnModifySelectedClicked);
+	// if (Btn_ModifySelected)
+	// 	Btn_ModifySelected->OnClicked.AddDynamic(this, &UCB_AddQuestion::OnModifySelectedClicked);
+	if (FilterComboBox)
+		FilterComboBox->OnSelectionChanged.AddDynamic(this, &UCB_AddQuestion::OnFilterChanged);
+
 
 	RefreshListView();
 }
@@ -63,94 +67,98 @@ void UCB_AddQuestion::OnQuestionTypeChanged(FString SelectedItem, ESelectInfo::T
 		TypeWidgetSwitcher->SetActiveWidgetIndex(3); // 단답형은 가변영역 비워둠
 }
 
-void UCB_AddQuestion::OnModifySelectedClicked()
-{
-	if (!QuestionListView) return;
-
-	TArray<UObject*> AllItems = QuestionListView->GetListItems();
-
-	UCB_QuestionListData* SelectedDataObj = nullptr;
-	int32 SelectedIndex = INDEX_NONE;
-	int32 CheckedCount = 0;
-
-	// 1. 체크박스 켜진 아이템 추적
-	for (int32 i = 0; i < AllItems.Num(); ++i)
-	{
-		UCB_QuestionListData* DataObj = Cast<UCB_QuestionListData>(AllItems[i]);
-		if (DataObj && DataObj->bIsCheckedForDelete)
-		{
-			SelectedDataObj = DataObj;
-			SelectedIndex = i;
-			CheckedCount++;
-		}
-	}
-
-	// 2. 예외 처리 방어선
-	if (CheckedCount == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[메인] 수정할 문제를 선택하지 않았습니다."));
-		return;
-	}
-	if (CheckedCount > 1)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[메인 경고] 문제는 한 번에 하나만 수정할 수 있습니다! 하나만 체크해 주세요."));
-		return;
-	}
-
-	// 3. 데이터 역주입 시작
-	if (SelectedDataObj)
-	{
-		const FCB_DataTable_Question& QData = SelectedDataObj->QuestionData;
-
-		// 일반 텍스트 및 기본 정보 채우기
-		if (CategoryInput) CategoryInput->SetText(FText::FromString(QData.Category));
-		if (QuestionTextInput) QuestionTextInput->SetText(FText::FromString(QData.QuestionText));
-		if (YoutubeURLInput) YoutubeURLInput->SetText(FText::FromString(QData.YoutubeURL));
-		if (AnswerInput) AnswerInput->SetText(FText::FromString(QData.Answer));
-		if (InitialSoundHintInput) InitialSoundHintInput->SetText(FText::FromString(QData.InitialSoundHint));
-		if (HintInput) HintInput->SetText(FText::FromString(QData.Hint));
-		if (ExplanationInput) ExplanationInput->SetText(FText::FromString(QData.Explanation));
-		if (ScoreSpinBox) ScoreSpinBox->SetValue(static_cast<float>(QData.Score));
-
-		// 🌟 [배열 맞춤 핵심] 객관식 보기 4개 역주입 (안전하게 인덱스 체크하면서 대입)
-		if (ChoiceInput_1) ChoiceInput_1->SetText(QData.Choices.IsValidIndex(0)
-			                                          ? FText::FromString(QData.Choices[0])
-			                                          : FText::GetEmpty());
-		if (ChoiceInput_2) ChoiceInput_2->SetText(QData.Choices.IsValidIndex(1)
-			                                          ? FText::FromString(QData.Choices[1])
-			                                          : FText::GetEmpty());
-		if (ChoiceInput_3) ChoiceInput_3->SetText(QData.Choices.IsValidIndex(2)
-			                                          ? FText::FromString(QData.Choices[2])
-			                                          : FText::GetEmpty());
-		if (ChoiceInput_4) ChoiceInput_4->SetText(QData.Choices.IsValidIndex(3)
-			                                          ? FText::FromString(QData.Choices[3])
-			                                          : FText::GetEmpty());
-
-		// 퀴즈 타입 콤보박스 및 스위처 갱신
-		if (QuestionTypeComboBox)
-		{
-			FString TypeStr = TEXT("객관식");
-			switch (QData.QuestionType)
-			{
-			case ECB_QuestionType::MultipleChoice: TypeStr = TEXT("객관식");
-				break;
-			case ECB_QuestionType::InitialSound: TypeStr = TEXT("초성");
-				break;
-			case ECB_QuestionType::YoutubeLink: TypeStr = TEXT("유튜브");
-				break;
-			case ECB_QuestionType::ShortAnswer: TypeStr = TEXT("단답형");
-				break;
-			}
-			QuestionTypeComboBox->SetSelectedOption(TypeStr);
-			OnQuestionTypeChanged(TypeStr, ESelectInfo::Direct);
-		}
-
-		// 수정 모드 상태 저장
-		CurrentEditingIndex = SelectedIndex;
-
-		UE_LOG(LogTemp, Log, TEXT("[메인 성공] %d번 문제 데이터 복원 완료. 수정 후 등록을 누르세요."), SelectedIndex + 1);
-	}
-}
+// void UCB_AddQuestion::OnModifySelectedClicked()
+// {
+// 	if (!QuestionListView) return;
+//
+// 	TArray<UObject*> AllItems = QuestionListView->GetListItems();
+//
+// 	UCB_QuestionListData* SelectedDataObj = nullptr;
+// 	int32 SelectedIndex = INDEX_NONE;
+// 	int32 CheckedCount = 0;
+//
+// 	// 1. 체크박스 켜진 아이템 추적
+// 	for (int32 i = 0; i < AllItems.Num(); ++i)
+// 	{
+// 		UCB_QuestionListData* DataObj = Cast<UCB_QuestionListData>(AllItems[i]);
+// 		if (DataObj && DataObj->bIsCheckedForDelete)
+// 		{
+// 			SelectedDataObj = DataObj;
+// 			SelectedIndex = i;
+// 			CheckedCount++;
+// 		}
+// 	}
+//
+// 	// 2. 예외 처리 방어선
+// 	if (CheckedCount == 0)
+// 	{
+// 		UE_LOG(LogTemp, Warning, TEXT("[메인] 수정할 문제를 선택하지 않았습니다."));
+// 		return;
+// 	}
+// 	if (CheckedCount > 1)
+// 	{
+// 		UE_LOG(LogTemp, Warning, TEXT("[메인 경고] 문제는 한 번에 하나만 수정할 수 있습니다! 하나만 체크해 주세요."));
+// 		return;
+// 	}
+//
+// 	// 3. 데이터 역주입 시작
+// 	if (SelectedDataObj)
+// 	{
+// 		const FCB_DataTable_Question& QData = SelectedDataObj->QuestionData;
+//
+// 		// 일반 텍스트 및 기본 정보 채우기
+// 		if (CategoryInput) CategoryInput->SetText(FText::FromString(QData.Category));
+// 		if (QuestionTextInput) QuestionTextInput->SetText(FText::FromString(QData.QuestionText));
+// 		if (YoutubeURLInput) YoutubeURLInput->SetText(FText::FromString(QData.YoutubeURL));
+// 		if (AnswerInput) AnswerInput->SetText(FText::FromString(QData.Answer));
+// 		if (InitialSoundHintInput) InitialSoundHintInput->SetText(FText::FromString(QData.InitialSoundHint));
+// 		if (HintInput) HintInput->SetText(FText::FromString(QData.Hint));
+// 		if (ExplanationInput) ExplanationInput->SetText(FText::FromString(QData.Explanation));
+// 		if (ScoreSpinBox) ScoreSpinBox->SetValue(static_cast<float>(QData.Score));
+//
+// 		// 🌟 [배열 맞춤 핵심] 객관식 보기 4개 역주입 (안전하게 인덱스 체크하면서 대입)
+// 		if (ChoiceInput_1)
+// 			ChoiceInput_1->SetText(QData.Choices.IsValidIndex(0)
+// 				                       ? FText::FromString(QData.Choices[0])
+// 				                       : FText::GetEmpty());
+// 		if (ChoiceInput_2)
+// 			ChoiceInput_2->SetText(QData.Choices.IsValidIndex(1)
+// 				                       ? FText::FromString(QData.Choices[1])
+// 				                       : FText::GetEmpty());
+// 		if (ChoiceInput_3)
+// 			ChoiceInput_3->SetText(QData.Choices.IsValidIndex(2)
+// 				                       ? FText::FromString(QData.Choices[2])
+// 				                       : FText::GetEmpty());
+// 		if (ChoiceInput_4)
+// 			ChoiceInput_4->SetText(QData.Choices.IsValidIndex(3)
+// 				                       ? FText::FromString(QData.Choices[3])
+// 				                       : FText::GetEmpty());
+//
+// 		// 퀴즈 타입 콤보박스 및 스위처 갱신
+// 		if (QuestionTypeComboBox)
+// 		{
+// 			FString TypeStr = TEXT("객관식");
+// 			switch (QData.QuestionType)
+// 			{
+// 			case ECB_QuestionType::MultipleChoice: TypeStr = TEXT("객관식");
+// 				break;
+// 			case ECB_QuestionType::InitialSound: TypeStr = TEXT("초성");
+// 				break;
+// 			case ECB_QuestionType::YoutubeLink: TypeStr = TEXT("유튜브");
+// 				break;
+// 			case ECB_QuestionType::ShortAnswer: TypeStr = TEXT("단답형");
+// 				break;
+// 			}
+// 			QuestionTypeComboBox->SetSelectedOption(TypeStr);
+// 			OnQuestionTypeChanged(TypeStr, ESelectInfo::Direct);
+// 		}
+//
+// 		// 수정 모드 상태 저장
+// 		CurrentEditingIndex = SelectedIndex;
+//
+// 		UE_LOG(LogTemp, Log, TEXT("[메인 성공] %d번 문제 데이터 복원 완료. 수정 후 등록을 누르세요."), SelectedIndex + 1);
+// 	}
+// }
 
 void UCB_AddQuestion::OnModifyButtonClicked()
 {
@@ -229,7 +237,7 @@ void UCB_AddQuestion::OnModifyButtonClicked()
 void UCB_AddQuestion::OnAddClicked()
 {
 	FCB_DataTable_Question NewData;
-    
+
 	// 기본 데이터 수집
 	if (CategoryInput) NewData.Category = CategoryInput->GetText().ToString();
 	if (QuestionTextInput) NewData.QuestionText = QuestionTextInput->GetText().ToString();
@@ -239,7 +247,7 @@ void UCB_AddQuestion::OnAddClicked()
 	if (HintInput) NewData.Hint = HintInput->GetText().ToString();
 	if (ExplanationInput) NewData.Explanation = ExplanationInput->GetText().ToString();
 	if (ScoreSpinBox) NewData.Score = FMath::RoundToInt(ScoreSpinBox->GetValue());
-    
+
 	if (ChoiceInput_1) NewData.Choices.Add(ChoiceInput_1->GetText().ToString());
 	if (ChoiceInput_2) NewData.Choices.Add(ChoiceInput_2->GetText().ToString());
 	if (ChoiceInput_3) NewData.Choices.Add(ChoiceInput_3->GetText().ToString());
@@ -251,7 +259,8 @@ void UCB_AddQuestion::OnAddClicked()
 		FString CurrentType = QuestionTypeComboBox->GetSelectedOption();
 		if (CurrentType == TEXT("객관식")) NewData.QuestionType = ECB_QuestionType::MultipleChoice;
 		else if (CurrentType == TEXT("초성")) NewData.QuestionType = ECB_QuestionType::InitialSound;
-		else if (CurrentType == TEXT("유튜브 링크")) NewData.QuestionType = ECB_QuestionType::YoutubeLink; // 🌟 보정: 콤보박스 스트링 매칭 일치화
+		else if (CurrentType == TEXT("유튜브 링크")) NewData.QuestionType = ECB_QuestionType::YoutubeLink;
+			// 🌟 보정: 콤보박스 스트링 매칭 일치화
 		else if (CurrentType == TEXT("단답형")) NewData.QuestionType = ECB_QuestionType::ShortAnswer;
 	}
 
@@ -385,6 +394,14 @@ void UCB_AddQuestion::OnUnselectAllClicked()
 	RefreshListView();
 }
 
+void UCB_AddQuestion::OnFilterChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
+{
+	UE_LOG(LogTemp, Log, TEXT("[필터 변경] %s 유형만 보기로 전환합니다."), *SelectedItem);
+
+	// 필터 조건이 바뀌었으니 리스트뷰를 다시 그려줍니다.
+	RefreshListView();
+}
+
 void UCB_AddQuestion::InitializeUI()
 {
 	if (QuestionTypeComboBox)
@@ -396,32 +413,88 @@ void UCB_AddQuestion::InitializeUI()
 		QuestionTypeComboBox->AddOption(TEXT("단답형"));
 		QuestionTypeComboBox->SetSelectedIndex(0);
 	}
+	if (FilterComboBox)
+	{
+		FilterComboBox->ClearOptions();
+		FilterComboBox->AddOption(TEXT("전체보기")); // 기본값
+		FilterComboBox->AddOption(TEXT("객관식"));
+		FilterComboBox->AddOption(TEXT("초성"));
+		FilterComboBox->AddOption(TEXT("유튜브 링크"));
+		FilterComboBox->AddOption(TEXT("단답형"));
+		FilterComboBox->SetSelectedIndex(0); // "전체보기"가 맨 처음 선택되도록 설정
+	}
 }
-
 void UCB_AddQuestion::RefreshListView()
 {
 	UListView* TargetListView = Cast<UListView>(GetWidgetFromName(TEXT("QuestionListView")));
 	if (!TargetListView) return;
 
-	TargetListView->ClearListItems();
+	if (!FilterComboBox) return; 
 
-	// 마스터 배열(TemporaryQuestionList)을 돌면서 화면에 뿌릴 주머니를 새로 만듭니다.
-	for (int32 i = 0; i < TemporaryQuestionList.Num(); ++i)
+	FString SelectedFilter = FilterComboBox->GetSelectedOption().TrimStartAndEnd();
+
+	if (SelectedFilter.IsEmpty())
 	{
-		UCB_QuestionListData* NewDataObj = NewObject<UCB_QuestionListData>(this);
-
-		// 1. 구조체 데이터 원본 복사
-		NewDataObj->QuestionData = TemporaryQuestionList[i];
-
-		// 🌟 [핵심 연결 코드가 빠졌을 확률 99%]
-		// 구조체 원본에 들어있는 체크 상태(일괄 선택 시 true로 바뀐 값)를 
-		// 새로 태어나는 데이터 주머니 변수(bIsCheckedForDelete)에도 명시적으로 꽂아줍니다!
-		NewDataObj->bIsCheckedForDelete = TemporaryQuestionList[i].bIsCheckedForDelete;
-
-		TargetListView->AddItem(NewDataObj);
+		SelectedFilter = TEXT("전체보기");
 	}
 
+	TargetListView->ClearListItems();
+
+	for (int32 i = 0; i < TemporaryQuestionList.Num(); ++i)
+	{
+		// 1. 🌟 현재 데이터 구조체의 퀴즈 타입(Enum)을 문자열로 치환합니다.
+		FString QuestionTypeStr = TEXT("");
+		switch (TemporaryQuestionList[i].QuestionType)
+		{
+		case ECB_QuestionType::MultipleChoice: QuestionTypeStr = TEXT("객관식");       break;
+		case ECB_QuestionType::InitialSound:   QuestionTypeStr = TEXT("초성");         break;
+		case ECB_QuestionType::YoutubeLink:    QuestionTypeStr = TEXT("유튜브 링크");   break; // 🌟 보정 일치화
+		case ECB_QuestionType::ShortAnswer:    QuestionTypeStr = TEXT("단답형");       break;
+		default: break;
+		}
+
+		// 2. 🌟 카테고리가 아니라, 방금 변환한 '문제 타입 문자열'과 콤보박스 필터를 비교합니다!
+		if (SelectedFilter != TEXT("전체보기") && QuestionTypeStr != SelectedFilter)
+		{
+			continue; // 필터와 일치하지 않는 타입의 문제는 패스
+		}
+
+		UCB_QuestionListData* NewDataObj = NewObject<UCB_QuestionListData>(this);
+		if (NewDataObj)
+		{
+			NewDataObj->QuestionData = TemporaryQuestionList[i];
+			NewDataObj->bIsCheckedForDelete = TemporaryQuestionList[i].bIsCheckedForDelete;
+
+			// [여기서 부모 주소 각인!] 주머니에게 내 주소(this)를 전달합니다.
+			NewDataObj->OwningAddQuestion = this;
+
+			TargetListView->AddItem(NewDataObj);
+		}
+	}
 	TargetListView->RequestRefresh();
+
+	// 첫 화면 텍스트 세팅
+	UpdateCountTextsOnly();
+}
+void UCB_AddQuestion::UpdateCountTextsOnly()
+{
+	UListView* TargetListView = Cast<UListView>(GetWidgetFromName(TEXT("QuestionListView")));
+	if (!TargetListView) return;
+
+	TArray<UObject*> AllItems = TargetListView->GetListItems();
+	int32 TotalQuestions = TemporaryQuestionList.Num();
+	int32 CheckedCount = 0;
+
+	for (UObject* Item : AllItems)
+	{
+		UCB_QuestionListData* DataObj = Cast<UCB_QuestionListData>(Item);
+		if (DataObj && DataObj->bIsCheckedForDelete) CheckedCount++;
+	}
+
+	if (TotalCountText) TotalCountText->SetText(FText::FromString(FString::Printf(TEXT("%d개"), TotalQuestions)));
+	if (SelectionRatioText)
+		SelectionRatioText->SetText(
+			FText::FromString(FString::Printf(TEXT("%d / %d"), CheckedCount, TotalQuestions)));
 }
 
 void UCB_AddQuestion::ClearInputFields()

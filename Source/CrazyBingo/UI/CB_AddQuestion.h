@@ -32,6 +32,14 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UEditableTextBox* YoutubeURLInput;
 
+	// 🌟 1. 총 문제 개수만 깔끔하게 표시할 텍스트 (예: "등록된 총 문제: 15개")
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TotalCountText;
+
+	// 🌟 2. 선택된 개수 / 전체 개수를 표시할 텍스트 (예: "선택됨: 3 / 15")
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* SelectionRatioText;
+	
     // 객관식 보기 4개 (배열로 묶어 다루면 편합니다)
     UPROPERTY(meta = (BindWidget))
     class UEditableTextBox* ChoiceInput_1;
@@ -93,8 +101,11 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_UnselectAll;
 
+	// UPROPERTY(meta = (BindWidget))
+	// class UButton* Btn_ModifySelected;
+
 	UPROPERTY(meta = (BindWidget))
-	class UButton* Btn_ModifySelected;
+	class UComboBoxString* FilterComboBox;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> SaveDialogClass;
@@ -105,8 +116,8 @@ protected:
     UFUNCTION()
     void OnQuestionTypeChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 
-	UFUNCTION()
-	void OnModifySelectedClicked();
+	// UFUNCTION()
+	// void OnModifySelectedClicked();
 
 	UFUNCTION()
 	void OnModifyButtonClicked();
@@ -131,12 +142,17 @@ protected:
 
 	UFUNCTION()
 	void OnUnselectAllClicked();
+
+	UFUNCTION()
+	void OnFilterChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
 	
 public:
     // 임시로 런타임 데이터를 들고 있을 배열 (나중에 SaveGame이나 파일로 저장할 타겟)
     TArray<FCB_DataTable_Question> TemporaryQuestionList;
     // 리스트뷰 갱신용 함수
     void RefreshListView();
+
+	void UpdateCountTextsOnly();
 private:
     // UI 초기화용 (ComboBox 아이템 세팅 등)
     void InitializeUI();
