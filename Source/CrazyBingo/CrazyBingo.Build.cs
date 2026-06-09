@@ -22,7 +22,10 @@ public class CrazyBingo : ModuleRules
 			"CommonInput",
 			"Paper2D",
 			// GAS
-			    
+			"DesktopPlatform",
+			"WebBrowser",
+			"WebBrowserWidget",
+			"ImageWrapper",
 			"GameplayTags"
 		});
 
