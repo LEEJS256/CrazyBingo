@@ -4,27 +4,34 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Data/CB_DataTable_Question.h"
 #include "CB_BingoBoard.generated.h"
 
 /**
  * 
  */
 class UCB_BingoCell;
-class UUniformGridPanel;
+
 UCLASS()
 class CRAZYBINGO_API UCB_BingoBoard : public UUserWidget
 {
 	GENERATED_BODY()
 
 public:
+	void OnCellSelected(int32 SelectedIndex);
+	
 	UFUNCTION(BlueprintCallable)
-	void InitBoard();
+	void InitBoard(int32 InBoardSize);
 
 	UFUNCTION(BlueprintCallable)
 	void CheckBingo();
+	UFUNCTION(BlueprintCallable, Category = "Bingo|Host")
+	void SetCellOwnerByHost(uint8 TeamNumber);
+	
 
 protected:
 	virtual void NativeConstruct() override;
+
 
 	// 에디터에서 이름 맞춰줄 것
 	UPROPERTY(meta = (BindWidget))
@@ -38,17 +45,20 @@ protected:
 	UPROPERTY()
 	TArray<class UCB_BingoCell*> Cells;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Bingo")
+	int32 BoardSize = 5;
+	
 	int32 BingoCount = 0;
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Text_Team1Score;
-	
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Text_Team2Score;
+	class UCB_BingoScoreBoard* BingoScoreBoard; 
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Text_TeamName_1;
+	class UCB_QuestionBoard*	QuestionBoard;
 	
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Text_TeamName_2;
+	UPROPERTY()
+	TArray<FCB_DataTable_Question> CurrentRoundQuestions;
+	
+
+	int32 CurrentOpenedCellIndex = INDEX_NONE;
 };
