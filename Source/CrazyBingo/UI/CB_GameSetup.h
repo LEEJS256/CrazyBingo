@@ -65,6 +65,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
 	TSubclassOf<class UCB_BingoBoard> BingoBoardClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "UI")
+	TSubclassOf<class UCB_HostPanel> HostPanelClass;
 	
 	
 	bool LoadQuestionsFromSlot(const FString& SlotName, TArray<FCB_DataTable_Question>& OutQuestions, FString& OutSaveDate);
@@ -81,6 +84,7 @@ protected:
 	UFUNCTION()
 	void OnCancelClicked();
 
+	void InitHostPanel();
 
 private:
 	// 현재 내부 메모리에 임시 캐싱해 둔 선택된 파일의 총 문제 수
