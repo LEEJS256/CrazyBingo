@@ -63,4 +63,8 @@ struct FCB_DataTable_Question : public FTableRowBase
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FString Explanation = TEXT("");
 
+	// CB_DataTable_Question.h 내부 구조체 맨 아래에 한 줄만 쏙 추가하세요!
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Quiz")
+	FString ImageAssetPath = TEXT("");
+
 };
