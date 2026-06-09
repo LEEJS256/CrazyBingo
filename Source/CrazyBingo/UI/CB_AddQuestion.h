@@ -86,6 +86,15 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UButton* DeleteButton;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_SelectImage;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* Image_Preview;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* Text_SelectedImagePath;
+	
     UPROPERTY(meta = (BindWidget))
     class UButton* BackToMenuButton;
 
@@ -101,6 +110,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_UnselectAll;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_LoadSelected;
+
+	// 🌟 버튼을 눌렀을 때 실행될 함수
+	UFUNCTION()
+	void OnLoadSelectedClicked();
+	
 	// UPROPERTY(meta = (BindWidget))
 	// class UButton* Btn_ModifySelected;
 
@@ -121,7 +137,8 @@ protected:
 
 	UFUNCTION()
 	void OnModifyButtonClicked();
-	
+
+
     UFUNCTION()
     void OnAddClicked();
 
@@ -145,6 +162,13 @@ protected:
 
 	UFUNCTION()
 	void OnFilterChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
+
+
+	// 최종 저장할 이미지 경로를 담아둘 변수
+	FString SelectedAbsoluteImagePath;
+
+	UFUNCTION()
+	void OnSelectImageClicked();
 	
 public:
     // 임시로 런타임 데이터를 들고 있을 배열 (나중에 SaveGame이나 파일로 저장할 타겟)
@@ -153,6 +177,8 @@ public:
     void RefreshListView();
 
 	void UpdateCountTextsOnly();
+
+	void SelectAndLoadQuestionData(const FCB_DataTable_Question& TargetData);
 private:
     // UI 초기화용 (ComboBox 아이템 세팅 등)
     void InitializeUI();
