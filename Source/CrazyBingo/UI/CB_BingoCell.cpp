@@ -3,40 +3,73 @@
 
 #include "CB_BingoCell.h"
 
+#include "CB_BingoBoard.h"
+#include "Components/Border.h"
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 
-void UCB_BingoCell::SetNumber(int32 InNumber)
-{
-	Number = InNumber;
-	if (NumberText)
-	{
-		NumberText->SetText(FText::AsNumber(InNumber));
 
-		// FSlateFontInfo FontInfo = NumberText->GetFont();
-		// FontInfo.Size = 24;  // ← 원하는 크기
-		// NumberText->SetFont(FontInfo);
-	}
-}
 
 void UCB_BingoCell::SetSelected(bool bInSelected)
 {
 	bSelected = bInSelected;
-	// if (CellButton)
-	// {
-	// 	// 선택 시 색상 변경
-	// 	FLinearColor Color = bInSelected ? FLinearColor(1.f, 0.5f, 0.f) : FLinearColor::White;
-	// 	CellButton->SetBackgroundColor(Color);
-	// }
 
-	if (CellImage)
+	// 버튼 자체의 틴트 컬러를 조절해 비활성화/선택 연출을 하고 싶을 때 사용
+	if (CellButton)
 	{
-		FLinearColor Color = bInSelected 
-			? FLinearColor(0.2f, 0.2f, 0.2f, 1.f)  // 선택 시 어둡게
-			: FLinearColor(1.f, 1.f, 1.f, 1.f);     // 기본 밝게
-        
-		CellImage->SetColorAndOpacity(Color);
+		FLinearColor Color = bInSelected ? FLinearColor(0.3f, 0.3f, 0.3f, 1.0f) : FLinearColor::White;
+		CellButton->SetBackgroundColor(Color);
+	}
+}
+
+void UCB_BingoCell::InitCellData(int32 InNumber, const FString& InCategory, class UCB_BingoBoard* InOwnerBoard,
+	int32 InCellIndex)
+{
+	Number = InNumber;
+	Category = InCategory;
+	OwnerBoard = InOwnerBoard; // 🌟 부모 기억
+	CellIndex = InCellIndex;   // 🌟 내 인덱스 기억
+
+	if (NumberText)    \
+		NumberText->SetText(FText::AsNumber(InNumber));
+	if (Text_Category)
+		Text_Category->SetText(FText::FromString(InCategory));
+}
+
+void UCB_BingoCell::InitCellData(int32 InNumber, const FString& InCategory)
+{
+	Number = InNumber;
+	Category = InCategory;
+
+	if (NumberText)
+	{
+		NumberText->SetText(FText::AsNumber(InNumber));
+	}
+
+	if (Text_Category)
+	{
+		Text_Category->SetText(FText::FromString(InCategory));
+	}
+}
+
+void UCB_BingoCell::OccupyCell(uint8 TeamNumber)
+{
+	if (!CellBackgroundBorder) return;
+	if (TeamNumber == 1)
+	{
+		// 🟣 팀 A 보라색
+		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.325f, 0.290f, 0.717f, 1.0f));
+	}
+	else if (TeamNumber == 2)
+	{
+		// 🟠 팀 B 주황색
+		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.729f, 0.458f, 0.090f, 1.0f));
+	}
+	else
+	{
+		// ⬛ 기본 어두운 배경색
+		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.164f, 0.145f, 0.250f, 1.0f));
 	}
 }
 
@@ -53,4 +86,8 @@ void UCB_BingoCell::NativeConstruct()
 void UCB_BingoCell::OnCellClicked()
 {
 	SetSelected(!bSelected);
+	if (OwnerBoard)
+	{
+		OwnerBoard->OnCellSelected(CellIndex);
+	}
 }

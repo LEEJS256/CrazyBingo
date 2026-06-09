@@ -16,9 +16,20 @@ class CRAZYBINGO_API UCB_BingoCell : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	// 숫자 세팅
-	UFUNCTION(BlueprintCallable)
-	void SetNumber(int32 InNumber);
+
+	// 🌟 셀을 초기화할 때 부모 보드의 주소와 고유 인덱스도 함께 기억시킵니다.
+	void InitCellData(int32 InNumber, const FString& InCategory, class UCB_BingoBoard* InOwnerBoard, int32 InCellIndex);
+
+	UPROPERTY()
+	class UCB_BingoBoard* OwnerBoard;
+
+	int32 CellIndex = 0;
+	
+	// 초기화 함수 확장 (기존 번호에 구조체에서 긁어온 카테고리 문자열 추가)
+	void InitCellData(int32 InNumber, const FString& InCategory);
+
+	// 🌟 정답 맞춘 팀에 따라 셀 배경 색상을 변경하는 함수 (0: 기본, 1: A팀, 2: B팀)
+	void OccupyCell(uint8 TeamNumber);
 
 	// 선택됐는지 여부
 	UFUNCTION(BlueprintCallable)
@@ -26,6 +37,9 @@ public:
 
 	UPROPERTY(BlueprintReadOnly)
 	int32 Number = 0;
+	
+	UPROPERTY(BlueprintReadOnly, Category = "Bingo")
+	FString Category = TEXT("");
 
 	UPROPERTY(BlueprintReadOnly)
 	bool bSelected = false;
@@ -42,7 +56,10 @@ protected:
 	class UTextBlock* NumberText;
 
 	UPROPERTY(meta = (BindWidget))
-	class UImage* CellImage;
+	class UTextBlock* Text_Category;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UBorder* CellBackgroundBorder;
 
 	
 };
