@@ -50,8 +50,8 @@ void ACB_GameMode::StartGame()
 
 void ACB_GameMode::ResetGame()
 {
-	if (BingoBoard)
-	{
-		BingoBoard->InitBoard();
-	}
+	// if (BingoBoard)
+	// {
+	// 	BingoBoard->InitBoard();
+	// }
 }
