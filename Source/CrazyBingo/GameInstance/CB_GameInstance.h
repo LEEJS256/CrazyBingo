@@ -16,6 +16,19 @@ class CRAZYBINGO_API UCB_GameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(BlueprintReadOnly, Category = "Bingo|Score")
+	int32 TeamAScore = 0;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Bingo|Score")
+	int32 TeamBScore = 0;
+
+	void PlusScore(int32 ArgScore , bool TeamA = true);
+	int32 GetScore(bool TeamA = true);
+
+	// 필요할 경우 점수를 완전히 초기화하는 함수도 파두면 편합니다.
+	UFUNCTION(BlueprintCallable, Category = "Bingo|Score")
+	void ResetScores() { TeamAScore = 0; TeamBScore = 0; }
+	
 
 	// 기본 카테고리 + 편집화면에서 추가 가능
 	UPROPERTY(BlueprintReadWrite)

@@ -6,6 +6,16 @@
 #include "Kismet/GameplayStatics.h"
 #include "Utility/CB_QuizSaveGame.h"
 
+void UCB_GameInstance::PlusScore(int32 ArgScore, bool TeamA)
+{
+	(TeamA ? TeamAScore : TeamBScore) += ArgScore;
+}
+
+int32 UCB_GameInstance::GetScore(bool TeamA)
+{
+	return (TeamA ? TeamAScore : TeamBScore);
+}
+
 void UCB_GameInstance::LoadQuestionsFromDataTable(UDataTable* DataTable)
 {
 	if (!DataTable)
