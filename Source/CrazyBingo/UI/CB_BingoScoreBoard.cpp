@@ -4,6 +4,7 @@
 #include "UI/CB_BingoScoreBoard.h"
 
 #include "Components/TextBlock.h"
+#include "GameInstance/CB_GameInstance.h"
 
 void UCB_BingoScoreBoard::UpdateScoreBoard(int32 Team1Score, int32 Team2Score, int32 Team1Bingo, int32 Team2Bingo)
 {
@@ -39,4 +40,25 @@ void UCB_BingoScoreBoard::SetTeamNames(const FString& Team1Name, const FString& 
 	{
 		Text_TeamName_2->SetText(FText::FromString(Team2Name));
 	}
+}
+
+void UCB_BingoScoreBoard::RefreshScoreUI()
+{
+	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
+
+	if (IsValid(Text_Team1Score))
+		Text_Team1Score->SetText(FText::AsNumber(GI->GetScore(true)));
+	if (IsValid(Text_Team2Score))
+		Text_Team2Score->SetText(FText::AsNumber(GI->GetScore(false)));
+}
+
+void UCB_BingoScoreBoard::RefreshBingoUI(int32 BingoNum, bool TeamA)
+{
+	if (TeamA)
+	{
+		Text_Team1BingoCount->SetText(FText::FromString(FString::Printf(TEXT("빙고 %d줄"), BingoNum)));
+	}
+
+	else
+		Text_Team2BingoCount->SetText(FText::FromString(FString::Printf(TEXT("빙고 %d줄"), BingoNum)));
 }

@@ -23,6 +23,8 @@ public:
 	// 🌟 게임 시작 시 팀 이름을 초기화 세팅해 줄 함수
 	void SetTeamNames(const FString& Team1Name, const FString& Team2Name);
 
+	void RefreshScoreUI();
+	void RefreshBingoUI(int32 BingoNum , bool TeamA = true);
 protected:
 	// 💡 UMG 디자이너에서 이 이름들과 정확히 일치하게 텍스트 블록을 만들어야 합니다.
 	UPROPERTY(meta = (BindWidget))
