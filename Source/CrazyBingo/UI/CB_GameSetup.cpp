@@ -15,6 +15,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Utility/CB_QuizSaveGame.h"
 #include "Utility/CB_SaveSlotData.h"
+#include "Widgets/Layout/SDPIScaler.h"
 
 void UCB_GameSetup::NativeConstruct()
 {
@@ -49,101 +50,85 @@ void UCB_GameSetup::NativeConstruct()
 
 void UCB_GameSetup::OnLaunchGameClicked()
 {
+	// 1. 기본 UI 컴포넌트 체크
 	if (!SaveFileListView || !BingoSizeComboBox) return;
 
 	UObject* SelectedItem = SaveFileListView->GetSelectedItem();
-	if (!SelectedItem) return;
+	if (!IsValid(SelectedItem)) return;
 
 	UCB_SaveSlotData* SelectedSlotData = Cast<UCB_SaveSlotData>(SelectedItem);
-	if (!SelectedSlotData) return;
+	if (!IsValid(SelectedSlotData)) return;
 
-	// 최종 크기 가공
+	// 2. 빙고 크기 가공
 	FString SizeOption = BingoSizeComboBox->GetSelectedOption();
 	int32 BingoSize = 5;
-	if (SizeOption == TEXT("3 x 3")) BingoSize = 3;
-	else if (SizeOption == TEXT("4 x 4")) BingoSize = 4;
-	else if (SizeOption == TEXT("5 x 5")) BingoSize = 5;
+	if (SizeOption == TEXT("3 x 3"))		BingoSize = 3;
+	else if (SizeOption == TEXT("4 x 4"))	BingoSize = 4;
+	else if (SizeOption == TEXT("5 x 5"))	BingoSize = 5;
 
 	int32 RequiredQuestionCount = BingoSize * BingoSize;
 
-
+	// 3. 세이브 파일 데이터 로드
 	TArray<FCB_DataTable_Question> LoadedRawQuestions;
 	FString DummyDate;
+	if (!LoadQuestionsFromSlot(SelectedSlotData->SlotName, LoadedRawQuestions, DummyDate)) return;
 
-	if (!LoadQuestionsFromSlot(SelectedSlotData->SlotName, LoadedRawQuestions, DummyDate))
-		return;
-
-
+	// 4. 게임 인스턴스 및 퀴즈 셔플 처리
 	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
-	if (GI)
+	if (!IsValid(GI)) return;
+
+	GI->Questions = LoadedRawQuestions;
+	TArray<FCB_DataTable_Question> FinalBingoQuestions = GI->GetRandomQuestions(RequiredQuestionCount);
+
+	// 5. 메인 메뉴 및 스위처 유효성 검사
+	UCB_MainMenu* MasterMenu = Cast<UCB_MainMenu>(GetOuter()->GetOuter());
+	if (!IsValid(MasterMenu)) return; // 🌟 !IsValid로 수정
+
+	int32 BingoPlayPageValue = 3;
+	UWidgetSwitcher* MainSwitcher = Cast<UWidgetSwitcher>(MasterMenu->GetWidgetFromName(TEXT("MenuSwitcher")));
+	if (!IsValid(MainSwitcher)) return; // 🌟 !IsValid로 수정
+
+	// 6. 빙고 보드 초기화
+	UCB_BingoBoard* BingoBoard = Cast<UCB_BingoBoard>(MainSwitcher->GetWidgetAtIndex(BingoPlayPageValue));
+	if (!IsValid(BingoBoard)) return; // 🌟 !IsValid로 수정
+	
+	BingoBoard->InitBoard(BingoSize);
+
+	// 7. 호스트 패널(외부 창) 생성 및 양방향 포인터 연동
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!IsValid(PC)) return; // 🌟 !IsValid로 수정
+
+	UCB_HostPanel* HostPanel = CreateWidget<UCB_HostPanel>(PC, HostPanelClass);
+	if (!IsValid(HostPanel)) return;
+
+	// 🤝 양방향 링크 개통
+	HostPanel->TargetBingoBoard = BingoBoard;
+	BingoBoard->TargetHostPanel = HostPanel; 
+
+	// 8. 독립 윈도우 창(SWindow) 띄우기
+	TSharedRef<SWindow> NewWindow = SNew(SWindow)
+		.Title(FText::FromString(TEXT("진행자 패널 (Host Panel)")))
+		.ClientSize(FVector2D(800.f, 1200.f))
+		.AutoCenter(EAutoCenter::PreferredWorkArea)
+		.SupportsMaximize(false)
+		.SupportsMinimize(true);
+
+	NewWindow->SetContent(
+		SNew(SDPIScaler)
+		.DPIScale(1.0f)
+		[
+			HostPanel->TakeWidget()
+		]
+	);
+
+	if (FSlateApplication::IsInitialized())
 	{
-		// 1. 불러온 퀴즈 팩을 게임 인스턴스 배열에 이관
-		GI->Questions = LoadedRawQuestions;
-
-		// 2. 인스턴스 내부에 미리 만들어두신 전매특허 함수를 호출하여 셔플 및 칼자르기 적용!
-		TArray<FCB_DataTable_Question> FinalBingoQuestions = GI->GetRandomQuestions(RequiredQuestionCount);
-
-		UE_LOG(LogTemp, Log, TEXT("[게임 세팅 최종 통과] %s 파일에서 무작위로 추출한 %d개의 퀴즈 패키징 완료!"),
-		       *SelectedSlotData->SlotName, FinalBingoQuestions.Num());
-
-
-		UCB_MainMenu* MasterMenu = Cast<UCB_MainMenu>(GetOuter()->GetOuter());
-		if (MasterMenu)
-		{
-			int32 BingoPlayPageValue = 3;
-
-			// 메인 메뉴의 위젯 스위처에서 스위처 컴포넌트를 찾아옵니다.
-			if (UWidgetSwitcher* MainSwitcher = Cast<UWidgetSwitcher>(
-				MasterMenu->GetWidgetFromName(TEXT("MenuSwitcher"))))
-			{
-				if (UCB_BingoBoard* BingoBoard = Cast<UCB_BingoBoard>(
-					MainSwitcher->GetWidgetAtIndex(BingoPlayPageValue)))
-				{
-					// 🌟 [핵심 변경] 콤보박스 선택 가공 결과인 BingoSize(3, 4, 5)를 넘겨주며 보드를 조립합니다!
-					BingoBoard->InitBoard(BingoSize);
-
-					if (HostPanelClass)
-					{
-						APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-						if (PC)
-						{
-							// 1. 먼저 기존처럼 UMG 위젯을 생성하고 데이터를 연동합니다.
-							UCB_HostPanel* HostPanel = CreateWidget<UCB_HostPanel>(PC, HostPanelClass);
-							if (HostPanel)
-							{
-								HostPanel->TargetBingoBoard = BingoBoard;
-
-								// 2. 🌟 진짜 독립된 OS 윈도우 창(SWindow)을 생성합니다.
-								TSharedRef<SWindow> NewWindow = SNew(SWindow)
-									.Title(FText::FromString(TEXT("진행자 패널 (Host Panel)"))) // 창 제목
-									.ClientSize(FVector2D(600.f, 800.f))                    // 창 초기 크기
-									.AutoCenter(EAutoCenter::PreferredWorkArea)            // 모니터 화면 중앙에 띄우기
-									.SupportsMaximize(false)                               // 최대화 버튼 비활성화 (선택)
-									.SupportsMinimize(true);                               // 최소화 버튼 활성화 (선택)
-
-								// 3. 🌟 생성한 OS 창 내부에 우리 UMG 위젯(Slate 변환본)을 쏙 집어넣습니다!
-								NewWindow->SetContent(HostPanel->TakeWidget());
-
-								// 4. 🌟 엔진의 슬레이트 애플리케이션에 이 창을 등록하여 화면에 최종 출력합니다.
-								if (FSlateApplication::IsInitialized())
-								{
-									FSlateApplication::Get().AddWindow(NewWindow);
-								}
-
-								UE_LOG(LogTemp, Log, TEXT("[호스트 패널] 게임 화면과 완전히 분리된 외부 독점 윈도우 창으로 팝업되었습니다."));
-							}
-						}
-					}
-				}
-			}
-
-			MasterMenu->SwitchToPage(BingoPlayPageValue);
-
-			UE_LOG(LogTemp, Log, TEXT("[화면 전환] 빙고 플레이 화면(페이지 %d)으로 이동합니다. 빙고 보드가 스스로 조립됩니다."), BingoPlayPageValue);
-		}
+		FSlateApplication::Get().AddWindow(NewWindow);
 	}
-}
 
+	// 9. 최종 페이지 전환
+	MasterMenu->SwitchToPage(BingoPlayPageValue);
+}
 void UCB_GameSetup::OnCancelClicked()
 {
 	UCB_MainMenu* MasterMenu = Cast<UCB_MainMenu>(GetOuter()->GetOuter());
@@ -155,7 +140,6 @@ void UCB_GameSetup::OnCancelClicked()
 
 void UCB_GameSetup::InitHostPanel()
 {
-
 }
 
 void UCB_GameSetup::RefreshSaveFileList()
