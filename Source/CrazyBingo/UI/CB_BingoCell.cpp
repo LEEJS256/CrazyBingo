@@ -56,6 +56,9 @@ void UCB_BingoCell::InitCellData(int32 InNumber, const FString& InCategory)
 void UCB_BingoCell::OccupyCell(uint8 TeamNumber)
 {
 	if (!CellBackgroundBorder) return;
+
+	AssignedTeamNumber = TeamNumber;
+	
 	if (TeamNumber == 1)
 	{
 		// 🟣 팀 A 보라색

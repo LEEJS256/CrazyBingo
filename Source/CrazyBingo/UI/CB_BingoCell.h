@@ -23,12 +23,15 @@ public:
 	UPROPERTY()
 	class UCB_BingoBoard* OwnerBoard;
 
+	UPROPERTY(BlueprintReadOnly, Category = "Bingo")
+	uint8 AssignedTeamNumber = 0;
+	
 	int32 CellIndex = 0;
 	
 	// 초기화 함수 확장 (기존 번호에 구조체에서 긁어온 카테고리 문자열 추가)
 	void InitCellData(int32 InNumber, const FString& InCategory);
 
-	// 🌟 정답 맞춘 팀에 따라 셀 배경 색상을 변경하는 함수 (0: 기본, 1: A팀, 2: B팀)
+
 	void OccupyCell(uint8 TeamNumber);
 
 	// 선택됐는지 여부
