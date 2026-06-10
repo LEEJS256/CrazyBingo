@@ -25,9 +25,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CheckBingo();
+	
 	UFUNCTION(BlueprintCallable, Category = "Bingo|Host")
 	void SetCellOwnerByHost(uint8 TeamNumber);
-	
+
+	UPROPERTY(BlueprintReadWrite, Category = "Host")
+	class UCB_HostPanel* TargetHostPanel;
 
 protected:
 	virtual void NativeConstruct() override;
