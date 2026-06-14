@@ -68,12 +68,7 @@ protected:
     // 특정 타입 선택 시 관련 입력창만 켜고 끄기 위한 위젯 스위처
     UPROPERTY(meta = (BindWidget))
     class UWidgetSwitcher* TypeWidgetSwitcher;
-
-
-    // =========================================================================
-    // 2. 리스트 및 기능 제어 버튼
-    // =========================================================================
-    // 문제 리스트를 보여줄 뷰 (ListView를 쓰려면 별도의 리스트 항목용 위젯이 필요합니다)
+	
     UPROPERTY(meta = (BindWidget))
     class UListView* QuestionListView;
 
@@ -101,9 +96,6 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_SaveQuiz;
 	
-	// UPROPERTY(meta = (BindWidget))
-	// class UButton* Btn_LoadQuiz;
-
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_SelectAll;
 
@@ -117,24 +109,15 @@ protected:
 	UFUNCTION()
 	void OnLoadSelectedClicked();
 	
-	// UPROPERTY(meta = (BindWidget))
-	// class UButton* Btn_ModifySelected;
-
 	UPROPERTY(meta = (BindWidget))
 	class UComboBoxString* FilterComboBox;
 
 	UPROPERTY(EditAnywhere, Category = "UI")
 	TSubclassOf<UUserWidget> SaveDialogClass;
 
-    // =========================================================================
-    // 3. 내부 이벤트 처리 함수
-    // =========================================================================
     UFUNCTION()
     void OnQuestionTypeChanged(FString SelectedItem, ESelectInfo::Type SelectionType);
-
-	// UFUNCTION()
-	// void OnModifySelectedClicked();
-
+	
 	UFUNCTION()
 	void OnModifyButtonClicked();
 
@@ -150,9 +133,6 @@ protected:
 
 	UFUNCTION()
 	void OnSaveButtonClicked();
-
-	// UFUNCTION()
-	// void OnLoadButtonClicked();
 
 	UFUNCTION()
 	void OnSelectAllClicked();

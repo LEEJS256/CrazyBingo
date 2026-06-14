@@ -8,7 +8,7 @@
 #include "Components/Button.h"
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
-
+#include "GameInstance/CB_GameInstance.h"
 
 
 void UCB_BingoCell::SetSelected(bool bInSelected)
@@ -58,20 +58,28 @@ void UCB_BingoCell::OccupyCell(uint8 TeamNumber)
 	if (!CellBackgroundBorder) return;
 
 	AssignedTeamNumber = TeamNumber;
+
+	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
 	
 	if (TeamNumber == 1)
 	{
-		// 🟣 팀 A 보라색
-		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.325f, 0.290f, 0.717f, 1.0f));
+
+		FLinearColor ColorA = GI->GetTeamColor(true);
+		CellBackgroundBorder->SetContentColorAndOpacity(ColorA);
+		
+		UE_LOG(LogTemp, Log, TEXT("[세포 갱신] %d번 세포가 A팀 색상으로 채워졌습니다."), CellIndex + 1);
 	}
 	else if (TeamNumber == 2)
 	{
-		// 🟠 팀 B 주황색
-		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.729f, 0.458f, 0.090f, 1.0f));
+
+		FLinearColor ColorB = GI->GetTeamColor(false);
+		CellBackgroundBorder->SetContentColorAndOpacity(ColorB);
+		
+		UE_LOG(LogTemp, Log, TEXT("[세포 갱신] %d번 세포가 B팀 색상으로 채워졌습니다."), CellIndex + 1);
 	}
 	else
 	{
-		// ⬛ 기본 어두운 배경색
+		// ⬛ 기본 어두운 배경색 (미점령 상태)
 		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.164f, 0.145f, 0.250f, 1.0f));
 	}
 }

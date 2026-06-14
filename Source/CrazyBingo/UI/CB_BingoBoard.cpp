@@ -6,10 +6,53 @@
 #include "CB_BingoCell.h"
 #include "CB_BingoScoreBoard.h"
 #include "CB_HostPanel.h"
+#include "CB_MainMenu.h"
 #include "CB_QuestionBoard.h"
+#include "CB_ResultPopup.h"
+#include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
 #include "GameInstance/CB_GameInstance.h"
+#include "Kismet/GameplayStatics.h"
+
+void UCB_BingoBoard::ReturnToMainMenu()
+{
+	UCB_MainMenu* MasterMenu = Cast<UCB_MainMenu>(GetOuter()->GetOuter());
+	if (IsValid(MasterMenu))
+	{
+
+		MasterMenu->SwitchToPage(0); 
+	}
+}
+
+void UCB_BingoBoard::HandleGameOver(uint8 WinningTeamID)
+{
+	if (!IsValid(ResultPopupClass)) return;
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!IsValid(PC)) return;
+
+	// 🌟 [교정] 우리가 만든 C++ 결과창 클래스로 위젯을 생성하고 형변환합니다!
+	UCB_ResultPopup* ResultWidget = CreateWidget<UCB_ResultPopup>(PC, ResultPopupClass);
+	if (!IsValid(ResultWidget)) return;
+
+	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
+	int32 ScoreA = IsValid(GI) ? GI->TeamAScore : 0;
+	int32 ScoreB = IsValid(GI) ? GI->TeamBScore : 0;
+
+	// 🌟 양방향 링크 통로 개통 및 데이터 세팅!
+	ResultWidget->OwnerBoard = this; // 결과창에게 나(보드판)의 주소를 가리키게 함
+	ResultWidget->SetupResultData(WinningTeamID, ScoreA, ScoreB); // 데이터 주입
+
+	// 화면에 장착
+	ResultWidget->AddToViewport(99);
+
+	// 진행자용 호스트 패널 닫기
+	if (IsValid(TargetHostPanel))
+	{
+		TargetHostPanel->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
 
 void UCB_BingoBoard::OnCellSelected(int32 SelectedIndex)
 {
@@ -60,6 +103,7 @@ void UCB_BingoBoard::InitBoard(int32 InBoardSize)
 	if (IsValid(BingoScoreBoard) && IsValid(GI))
 	{
 		BingoScoreBoard->RefreshScoreUI();
+		BingoScoreBoard->RefreshTeamColor();
 	}
 
 	TArray<int32> Numbers;
@@ -206,12 +250,82 @@ void UCB_BingoBoard::CheckBingo()
 	BingoScoreBoard->RefreshBingoUI(TeamBBingoCount, false); // B팀 텍스트 줄 수 세팅
 
 	UE_LOG(LogTemp, Log, TEXT("[빙고 라인 연동] A팀: %d줄 / B팀: %d줄 실시간 갱신 완료"), TeamABingoCount, TeamBBingoCount);
+
+	int32 TotalSelectedCells = 0;
+	for (UCB_BingoCell* Cell : Cells)
+	{
+		// 호스트가 무효화(0번)한 칸을 제외하고 팀 A(1) 또는 팀 B(2)로 점령된 칸만 셉니다.
+		if (IsValid(Cell) && Cell->bSelected && Cell->AssignedTeamNumber > 0)
+		{
+			TotalSelectedCells++;
+		}
+	}
+
+	// 기존 호출 함수에 총 선택된 세포 개수(TotalSelectedCells) 인자를 추가하여 토스합니다.
+	CheckOutGameOver(TeamABingoCount, TeamBBingoCount, TotalSelectedCells);
+	
+	// CheckOutGameOver(TeamABingoCount,TeamBBingoCount);
 }
 
 void UCB_BingoBoard::NativeConstruct()
 {
 	Super::NativeConstruct();
 	// InitBoard();
+}
+
+
+
+void UCB_BingoBoard::CheckOutGameOver(int32 TeamA, int32 TeamB, int32 TotalSelectedCells)
+{
+	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
+	
+	// GI가 유효하다면 세팅된 목표값을 쓰고, 없으면 안전빵으로 3줄을 기본값으로 씁니다.
+	int32 FinalTargetLines = IsValid(GI) ? GI->GetTargetBingo() : 3;
+
+	// -------------------------------------------------------------------------
+	// 조건 1. [기존] 어느 한 팀이라도 목표 빙고 줄 수에 먼저 도달했을 때
+	// -------------------------------------------------------------------------
+	if (TeamA >= FinalTargetLines)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[게임 종료] 🔴 A팀이 목표치인 %d줄을 달성하여 최종 승리했습니다!"), FinalTargetLines);
+		HandleGameOver(1); // A팀 승리 팝업
+		return;
+	}
+	else if (TeamB >= FinalTargetLines)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[게임 종료] 🔵 B팀이 목표치인 %d줄을 달성하여 최종 승리했습니다!"), FinalTargetLines);
+		HandleGameOver(2); // B팀 승리 팝업
+		return;
+	}
+
+	// -------------------------------------------------------------------------
+	// 조건 2. [추가] 목표 빙고에는 못 갔지만 모든 빙고판이 꽉 채워졌을 때 (점수 높은 팀 승리)
+	// -------------------------------------------------------------------------
+	if (Cells.Num() > 0 && TotalSelectedCells >= Cells.Num())
+	{
+		int32 ScoreA = IsValid(GI) ? GI->TeamAScore : 0;
+		int32 ScoreB = IsValid(GI) ? GI->TeamBScore : 0;
+
+		UE_LOG(LogTemp, Warning, TEXT("[게임 종료] 모든 빙고판이 채워졌습니다! 최종 점수를 비교합니다. (A팀: %d점 / B팀: %d점)"), ScoreA, ScoreB);
+
+		if (ScoreA > ScoreB)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[결과] 점수가 더 높은 🔴 A팀 최종 승리!"));
+			HandleGameOver(1);
+		}
+		else if (ScoreB > ScoreA)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("[결과] 점수가 더 높은 🔵 B팀 최종 승리!"));
+			HandleGameOver(2);
+		}
+		else
+		{
+			// 🤝 점수까지 완벽하게 동점일 경우 (레크리에이션 예외 처리)
+			// 우선 1번(A팀) 혹은 별도의 무승부 플래그(예: 3)를 던져 연출하도록 설계합니다.
+			UE_LOG(LogTemp, Warning, TEXT("[결과] 점수까지 동점입니다! 무승부 혹은 판정 승리 처리."));
+			HandleGameOver(1); 
+		}
+	}
 }
 
 void UCB_BingoBoard::SetCellOwnerByHost(uint8 TeamNumber)

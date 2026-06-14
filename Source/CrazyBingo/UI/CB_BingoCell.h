@@ -28,9 +28,7 @@ public:
 	
 	int32 CellIndex = 0;
 	
-	// 초기화 함수 확장 (기존 번호에 구조체에서 긁어온 카테고리 문자열 추가)
 	void InitCellData(int32 InNumber, const FString& InCategory);
-
 
 	void OccupyCell(uint8 TeamNumber);
 

@@ -18,6 +18,13 @@ class CRAZYBINGO_API UCB_BingoBoard : public UUserWidget
 	GENERATED_BODY()
 
 public:
+
+	UFUNCTION(BlueprintCallable, Category = "Bingo|Rules")
+	void ReturnToMainMenu();
+	
+	// 최종 승리팀 번호를 받아 처리하는 함수
+	void HandleGameOver(uint8 WinningTeamID);
+	
 	void OnCellSelected(int32 SelectedIndex);
 	
 	UFUNCTION(BlueprintCallable)
@@ -43,8 +50,7 @@ protected:
 	// 셀 위젯 클래스 (에디터에서 WBP_BingoCell 지정)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<class UCB_BingoCell> BingoCellClass;
-
-	// 25개 셀 배열
+	
 	UPROPERTY()
 	TArray<class UCB_BingoCell*> Cells;
 
@@ -61,6 +67,11 @@ protected:
 	
 	UPROPERTY()
 	TArray<FCB_DataTable_Question> CurrentRoundQuestions;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bingo|Rules")
+	TSubclassOf<class UUserWidget> ResultPopupClass;
+	
+	void CheckOutGameOver(int32 TeamA, int32 TeamB, int32 TotalSelectedCells);
 	
 
 	int32 CurrentOpenedCellIndex = INDEX_NONE;
