@@ -16,6 +16,7 @@ class CRAZYBINGO_API UCB_GameInstance : public UGameInstance
 	GENERATED_BODY()
 
 public:
+	
 	UPROPERTY(BlueprintReadOnly, Category = "Bingo|Score")
 	int32 TeamAScore = 0;
 
@@ -24,15 +25,10 @@ public:
 
 	void PlusScore(int32 ArgScore , bool TeamA = true);
 	int32 GetScore(bool TeamA = true);
-
-	// 필요할 경우 점수를 완전히 초기화하는 함수도 파두면 편합니다.
+	FLinearColor GetTeamColor(bool TeamA = true);
+	
 	UFUNCTION(BlueprintCallable, Category = "Bingo|Score")
 	void ResetScores() { TeamAScore = 0; TeamBScore = 0; }
-	
-
-	// 기본 카테고리 + 편집화면에서 추가 가능
-	UPROPERTY(BlueprintReadWrite)
-	TArray<FString> Categories = { TEXT("과학"), TEXT("사회"), TEXT("예능"), TEXT("애니") };
 	
 	// 전체 문제 목록
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
@@ -50,7 +46,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 	TArray<FCB_DataTable_Question> GetRandomQuestions(int32 Count = 25);
 
-	
+	UFUNCTION(BlueprintCallable, Category = "Bingo|Rules")
+	void SetTargetBingoCount(int32 NewCount);
+
+	int32 GetTargetBingo();
+	UFUNCTION(BlueprintCallable, Category = "Bingo|Color")
+	void SetTeamColors(FLinearColor NewColorA, FLinearColor NewColorB);
+	void SetTeamColors2(FLinearColor NewColor,bool TeamA =true);
+
 #pragma region SaveData
 public:
 	// 게임 시작 시 호출되는 초기화 함수 (여기서 자동 로드)
@@ -75,7 +78,19 @@ public:
 
 
 #pragma endregion 
+protected:
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bingo|Rules")
+	int32 TargetBingoCount = 3;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bingo|Color")
+	FLinearColor TeamAColor = FLinearColor(1.0f, 0.0f, 0.0f, 1.0f); // Pure Red
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bingo|Color")
+	FLinearColor TeamBColor = FLinearColor(0.0f, 0.0f, 1.0f, 1.0f); // Pure Blue
 private:
+
+	
 	const FString SaveSlotName = TEXT("CrazyBingo_QuizSlot");
 	const int32 UserIndex = 0;
 };

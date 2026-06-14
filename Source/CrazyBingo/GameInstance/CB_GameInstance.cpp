@@ -6,6 +6,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Utility/CB_QuizSaveGame.h"
 
+
 void UCB_GameInstance::PlusScore(int32 ArgScore, bool TeamA)
 {
 	(TeamA ? TeamAScore : TeamBScore) += ArgScore;
@@ -14,6 +15,11 @@ void UCB_GameInstance::PlusScore(int32 ArgScore, bool TeamA)
 int32 UCB_GameInstance::GetScore(bool TeamA)
 {
 	return (TeamA ? TeamAScore : TeamBScore);
+}
+
+FLinearColor UCB_GameInstance::GetTeamColor(bool TeamA)
+{
+	return (TeamA ? TeamAColor : TeamBColor);
 }
 
 void UCB_GameInstance::LoadQuestionsFromDataTable(UDataTable* DataTable)
@@ -51,6 +57,29 @@ TArray<FCB_DataTable_Question> UCB_GameInstance::GetRandomQuestions(int32 Count)
 	// Count만큼 잘라서 반환
 	int32 ActualCount = FMath::Min(Count, Shuffled.Num());
 	return TArray<FCB_DataTable_Question>(Shuffled.GetData(), ActualCount);
+}
+
+void UCB_GameInstance::SetTargetBingoCount(int32 NewCount)
+{
+	// 1보다 작은 값이 들어오지 않도록 최소 안전장치 적용
+	TargetBingoCount = FMath::Max(1, NewCount);
+	UE_LOG(LogTemp, Log, TEXT("[설정 변경] 목표 빙고 줄 수가 %d줄로 변경되었습니다."), TargetBingoCount);
+}
+
+int32 UCB_GameInstance::GetTargetBingo()
+{
+	return TargetBingoCount;
+}
+
+void UCB_GameInstance::SetTeamColors(FLinearColor NewColorA, FLinearColor NewColorB)
+{
+	TeamAColor = NewColorA;
+	TeamBColor = NewColorB;
+}
+
+void UCB_GameInstance::SetTeamColors2(FLinearColor NewColor, bool TeamA)
+{
+	TeamA ? (TeamAColor = NewColor) : (TeamBColor = NewColor);
 }
 
 void UCB_GameInstance::Init()
