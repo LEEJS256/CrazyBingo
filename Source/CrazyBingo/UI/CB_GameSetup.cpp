@@ -62,9 +62,12 @@ void UCB_GameSetup::OnLaunchGameClicked()
 	// 2. 빙고 크기 가공
 	FString SizeOption = BingoSizeComboBox->GetSelectedOption();
 	int32 BingoSize = 5;
-	if (SizeOption == TEXT("3 x 3"))		BingoSize = 3;
-	else if (SizeOption == TEXT("4 x 4"))	BingoSize = 4;
-	else if (SizeOption == TEXT("5 x 5"))	BingoSize = 5;
+	if (SizeOption == TEXT("3 x 3"))
+		BingoSize = 3;
+	else if (SizeOption == TEXT("4 x 4"))
+		BingoSize = 4;
+	else if (SizeOption == TEXT("5 x 5"))
+		BingoSize = 5;
 
 	int32 RequiredQuestionCount = BingoSize * BingoSize;
 
@@ -82,28 +85,27 @@ void UCB_GameSetup::OnLaunchGameClicked()
 
 	// 5. 메인 메뉴 및 스위처 유효성 검사
 	UCB_MainMenu* MasterMenu = Cast<UCB_MainMenu>(GetOuter()->GetOuter());
-	if (!IsValid(MasterMenu)) return; // 🌟 !IsValid로 수정
+	if (!IsValid(MasterMenu)) return;
 
 	int32 BingoPlayPageValue = 3;
 	UWidgetSwitcher* MainSwitcher = Cast<UWidgetSwitcher>(MasterMenu->GetWidgetFromName(TEXT("MenuSwitcher")));
-	if (!IsValid(MainSwitcher)) return; // 🌟 !IsValid로 수정
+	if (!IsValid(MainSwitcher)) return;
 
 	// 6. 빙고 보드 초기화
 	UCB_BingoBoard* BingoBoard = Cast<UCB_BingoBoard>(MainSwitcher->GetWidgetAtIndex(BingoPlayPageValue));
-	if (!IsValid(BingoBoard)) return; // 🌟 !IsValid로 수정
-	
+	if (!IsValid(BingoBoard)) return;
+
 	BingoBoard->InitBoard(BingoSize);
 
 	// 7. 호스트 패널(외부 창) 생성 및 양방향 포인터 연동
 	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	if (!IsValid(PC)) return; // 🌟 !IsValid로 수정
+	if (!IsValid(PC)) return;
 
 	UCB_HostPanel* HostPanel = CreateWidget<UCB_HostPanel>(PC, HostPanelClass);
 	if (!IsValid(HostPanel)) return;
 
-	// 🤝 양방향 링크 개통
 	HostPanel->TargetBingoBoard = BingoBoard;
-	BingoBoard->TargetHostPanel = HostPanel; 
+	BingoBoard->TargetHostPanel = HostPanel;
 
 	// 8. 독립 윈도우 창(SWindow) 띄우기
 	TSharedRef<SWindow> NewWindow = SNew(SWindow)
@@ -129,6 +131,7 @@ void UCB_GameSetup::OnLaunchGameClicked()
 	// 9. 최종 페이지 전환
 	MasterMenu->SwitchToPage(BingoPlayPageValue);
 }
+
 void UCB_GameSetup::OnCancelClicked()
 {
 	UCB_MainMenu* MasterMenu = Cast<UCB_MainMenu>(GetOuter()->GetOuter());
@@ -163,9 +166,6 @@ void UCB_GameSetup::RefreshSaveFileList()
 		{
 			NewSlotObj->SlotName = SlotName;
 			NewSlotObj->bIsSelected = false;
-
-			// 🌟 [추가] 데이터 주머니에게 메인 세팅창인 내 주소(this)를 전달합니다!
-			// (이를 위해 UCB_SaveSlotData 클래스 내부에 OwningGameSetup 변수가 선언되어 있어야 합니다)
 			NewSlotObj->OwningGameSetup = this;
 
 			SaveFileListView->AddItem(NewSlotObj);
@@ -183,8 +183,6 @@ bool UCB_GameSetup::LoadQuestionsFromSlot(const FString& SlotName, TArray<FCB_Da
 		{
 			OutQuestions = LoadedGame->SavedQuestions;
 
-			// 🌟 파일에 저장되어 있던 진짜 날짜 문자열을 바깥으로 빼내줍니다!
-			// 만약 옛날에 저장해서 날짜가 비어있다면 디폴트 날짜를 제공하는 안전장치 배치
 			OutSaveDate = LoadedGame->SaveDateTimeString.IsEmpty()
 				              ? TEXT("2026-06-06")
 				              : LoadedGame->SaveDateTimeString;
@@ -211,14 +209,12 @@ void UCB_GameSetup::UpdateSetupValidation()
 		FString SizeStr = FString::Printf(TEXT("%d x %d (%d칸)"), BingoSize, BingoSize, RequiredCount);
 		Text_InfoSize->SetText(FText::FromString(SizeStr));
 	}
-
-	// 2. 🌟 유효성 체크 분기선 (충분한지 부족한지 실시간 판정)
-	// 아무것도 선택하지 않았을 때의 방어선 예외 처리 포함
+	
 	UObject* SelectedItem = SaveFileListView ? SaveFileListView->GetSelectedItem() : nullptr;
 
 	if (!SelectedItem)
 	{
-		// 파일 무선택 상태 가이드
+
 		if (Text_InfoCheck) Text_InfoCheck->SetText(FText::FromString(TEXT("플레이할 세이브 파일을 왼쪽에서 골라주세요.")));
 		if (Text_InfoStatus) Text_InfoStatus->SetText(FText::FromString(TEXT("대기 중")));
 		if (Btn_LaunchGame) Btn_LaunchGame->SetIsEnabled(false); // 버튼 잠금
@@ -252,7 +248,7 @@ void UCB_GameSetup::UpdateSetupValidation()
 		}
 
 		if (Text_InfoStatus) Text_InfoStatus->SetText(FText::FromString(TEXT("● 문제 부족")));
-		if (Btn_LaunchGame) Btn_LaunchGame->SetIsEnabled(false); // 🌟 [버튼 강제 차단!] 시작 방지
+		if (Btn_LaunchGame) Btn_LaunchGame->SetIsEnabled(false); 
 	}
 }
 
@@ -266,7 +262,7 @@ void UCB_GameSetup::OnSaveFileSelected(UObject* Item)
 	TArray<FCB_DataTable_Question> TempQuestions;
 	FString TargetDate = TEXT(""); // 날짜를 받아올 변수
 
-	// 🌟 로드 함수를 통해 문제와 날짜를 동시에 수집합니다.
+
 	if (LoadQuestionsFromSlot(SelectedSlotData->SlotName, TempQuestions, TargetDate))
 	{
 		SelectedFileQuestionCount = TempQuestions.Num();
@@ -283,8 +279,7 @@ void UCB_GameSetup::OnSaveFileSelected(UObject* Item)
 		if (Text_InfoCount) Text_InfoCount->SetText(FText::FromString(TEXT("0문제")));
 		TargetDate = TEXT("---- -- --");
 	}
-
-	// 🌟 [하드코딩 탈출!] 세이브 파일이 가지고 있던 진짜 날짜를 UI에 꽂아줍니다!
+	
 	if (Text_InfoDate)
 	{
 		Text_InfoDate->SetText(FText::FromString(TargetDate));
