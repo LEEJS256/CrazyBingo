@@ -17,6 +17,13 @@ if (!Text_QuestionType || !Text_QuestionBody || !QuestionTypeSwitcher) return;
     // 1. 공통 질문 내용 세팅 (기존 변수명에 맞춰 세팅)
     Text_QuestionBody->SetText(FText::FromString(QuestionData.QuestionText));
 
+    if (IsValid(Text_QuestionScore))
+    {
+
+        FString ScoreStr = FString::Printf(TEXT("[%d점]"), QuestionData.Score);
+        Text_QuestionScore->SetText(FText::FromString(ScoreStr));
+    }
+    
     if (Image_QuestionPhoto)
     {
         // 경로가 존재하고 비어있지 않다면
@@ -28,7 +35,7 @@ if (!Text_QuestionType || !Text_QuestionBody || !QuestionTypeSwitcher) return;
             if (IsValid(LoadedTexture)) 
             {
                 Image_QuestionPhoto->SetBrushFromTexture(LoadedTexture);
-                Image_QuestionPhoto->SetVisibility(ESlateVisibility::Visible); // ⭕ 이때만 켠다!
+                Image_QuestionPhoto->SetVisibility(ESlateVisibility::Visible); 
             
                 UE_LOG(LogTemp, Log, TEXT("[성공] 이미지 로드 완료: %s"), *QuestionData.ImageAssetPath);
             }
@@ -77,17 +84,13 @@ if (!Text_QuestionType || !Text_QuestionBody || !QuestionTypeSwitcher) return;
         {
             FString TargetURL = QuestionData.YoutubeURL;
 
-            // 💡 [고급 팁] 일반 주소를 유튜브 임베드(전체화면 재생) 주소로 변환합니다.
-            // 예: watch?v=abcdefg -> embed/abcdefg
             if (TargetURL.Contains(TEXT("watch?v=")))
             {
                 TargetURL = TargetURL.Replace(TEXT("watch?v="), TEXT("embed/"));
-                
-                // 레크리에이션용 자동재생 옵션 추가 (?autoplay=1)
+              
                 TargetURL += TEXT("?autoplay=1"); 
             }
 
-            // 🌟 가공된 주소로 웹 브라우저 페이지 이동 (게임 화면 내에서 자동 재생!)
             WebBrowser_Youtube->LoadURL(TargetURL);
         }
         break;
