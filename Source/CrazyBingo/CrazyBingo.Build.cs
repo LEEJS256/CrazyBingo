@@ -26,6 +26,7 @@ public class CrazyBingo : ModuleRules
 			"WebBrowser",
 			"WebBrowserWidget",
 			"ImageWrapper",
+			"AppFramework",
 			"GameplayTags"
 		});
 
