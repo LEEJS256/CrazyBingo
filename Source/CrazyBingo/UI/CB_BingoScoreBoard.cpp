@@ -3,6 +3,8 @@
 
 #include "UI/CB_BingoScoreBoard.h"
 
+#include "CB_BingoBoard.h"
+#include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "GameInstance/CB_GameInstance.h"
 
@@ -42,6 +44,17 @@ void UCB_BingoScoreBoard::SetTeamNames(const FString& Team1Name, const FString& 
 	}
 }
 
+void UCB_BingoScoreBoard::RefreshTeamColor()
+{
+	
+	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
+
+	Text_TeamName_1->SetColorAndOpacity(GI->GetTeamColor(true));
+	
+	Text_TeamName_2->SetColorAndOpacity(GI->GetTeamColor(false));
+}
+
+
 void UCB_BingoScoreBoard::RefreshScoreUI()
 {
 	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
@@ -61,4 +74,37 @@ void UCB_BingoScoreBoard::RefreshBingoUI(int32 BingoNum, bool TeamA)
 
 	else
 		Text_Team2BingoCount->SetText(FText::FromString(FString::Printf(TEXT("빙고 %d줄"), BingoNum)));
+}
+
+void UCB_BingoScoreBoard::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	if (IsValid(Btn_BackToMenu))
+	{
+		Btn_BackToMenu->OnClicked.AddDynamic(this, &UCB_BingoScoreBoard::OnBackToMenuClicked);
+	}
+	
+}
+
+void UCB_BingoScoreBoard::OnBackToMenuClicked()
+{
+	UCB_BingoBoard* OwnerBoard = Cast<UCB_BingoBoard>(GetOuter());
+	
+
+	if (!IsValid(OwnerBoard))
+	{
+
+		OwnerBoard = Cast<UCB_BingoBoard>(GetParent()->GetOuter());
+	}
+
+	if (IsValid(OwnerBoard))
+	{
+		OwnerBoard->ReturnToMainMenu(); 
+		UE_LOG(LogTemp, Log, TEXT("[점수판] 메인 메뉴 복귀 명령 전송 완료!"));
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("[오류] 부모 보드판(OwnerBoard)을 찾을 수 없어 탈출할 수 없습니다."));
+	}
 }
