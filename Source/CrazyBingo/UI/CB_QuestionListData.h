@@ -25,6 +25,4 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Quiz")
 	bool bIsCheckedForDelete = false;
 	
-	// // 삭제나 관리를 위해 보관할 배열 인덱스 (옵션)
-	// int32 ListIndex;
 };
