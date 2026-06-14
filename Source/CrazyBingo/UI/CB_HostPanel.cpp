@@ -61,7 +61,7 @@ void UCB_HostPanel::OnTeamAWinClicked()
 {
 	if (IsValid(TargetBingoBoard))
 	{
-		// A팀 점령 (1번 번호 넘기기)
+	
 		TargetBingoBoard->SetCellOwnerByHost(1);
 		UE_LOG(LogTemp, Log, TEXT("[호스트패널] A팀 정답 처리를 독립 무전으로 보드에 통보했습니다."));
 	}
@@ -71,9 +71,7 @@ void UCB_HostPanel::OnTeamBWinClicked()
 {
 	if (IsValid(TargetBingoBoard))
 	{
-		// A팀 점령 (1번 번호 넘기기)
 		TargetBingoBoard->SetCellOwnerByHost(2);
-
 	}
 }
 
