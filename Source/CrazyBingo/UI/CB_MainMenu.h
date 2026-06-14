@@ -23,10 +23,6 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* BackgroundImage;
 
-	// UPROPERTY(meta = (BindWidget))
-	// class UTextBlock* TitleText;
-
-
 	UPROPERTY(meta = (BindWidget))
 	class UWidgetSwitcher* MenuSwitcher;
 
@@ -35,6 +31,9 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UCB_GameSetup* WBP_GameSetup;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Bingo|UI")
+	TSubclassOf<class UCB_OptionPopUp> OptionPopUpClass;
 	
 	UPROPERTY(meta = (BindWidget))
 	class UButton* StartButton;

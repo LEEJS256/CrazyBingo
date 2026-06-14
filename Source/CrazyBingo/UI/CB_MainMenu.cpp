@@ -3,6 +3,7 @@
 
 #include "UI/CB_MainMenu.h"
 
+#include "CB_OptionPopUp.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Kismet/GameplayStatics.h"
@@ -66,7 +67,22 @@ void UCB_MainMenu::OnEditClicked()
 
 void UCB_MainMenu::OnSettingClicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Setting  Clicked"));
+	if (!IsValid(OptionPopUpClass))
+	{
+		UE_LOG(LogTemp, Error, TEXT("[오류] OptionPopUpClass가 에디터에서 지정되지 않았습니다!"));
+		return;
+	}
+
+	APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+	if (!IsValid(PC)) return;
+
+	// 2. 🌟 메인 메뉴 스위처를 돌리는 대신, 설정창 위젯을 독립적으로 동적 생성합니다!
+	UCB_OptionPopUp* OptionPopup = CreateWidget<UCB_OptionPopUp>(PC, OptionPopUpClass);
+	if (!IsValid(OptionPopup)) return;
+
+	// 3. 화면 맨 위에 독립된 팝업으로 장착 (결과창보다는 아래에 깔리도록 Z-Order를 10 정도로 세팅)
+	OptionPopup->AddToViewport(10);
+
 }
 
 void UCB_MainMenu::OnQuitClicked()
