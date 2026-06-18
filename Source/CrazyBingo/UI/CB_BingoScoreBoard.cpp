@@ -89,14 +89,7 @@ void UCB_BingoScoreBoard::NativeConstruct()
 
 void UCB_BingoScoreBoard::OnBackToMenuClicked()
 {
-	UCB_BingoBoard* OwnerBoard = Cast<UCB_BingoBoard>(GetOuter());
-	
-
-	if (!IsValid(OwnerBoard))
-	{
-
-		OwnerBoard = Cast<UCB_BingoBoard>(GetParent()->GetOuter());
-	}
+	UCB_BingoBoard* OwnerBoard = GetTypedOuter<UCB_BingoBoard>();
 
 	if (IsValid(OwnerBoard))
 	{
@@ -105,6 +98,6 @@ void UCB_BingoScoreBoard::OnBackToMenuClicked()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("[오류] 부모 보드판(OwnerBoard)을 찾을 수 없어 탈출할 수 없습니다."));
+		UE_LOG(LogTemp, Error, TEXT("[오류] GetTypedOuter가 상위 계층에서 부모 보드판(UCB_BingoBoard)을 찾지 못했습니다."));
 	}
 }
