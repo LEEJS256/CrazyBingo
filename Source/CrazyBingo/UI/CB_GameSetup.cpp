@@ -28,6 +28,9 @@ void UCB_GameSetup::NativeConstruct()
 		BingoSizeComboBox->AddOption(TEXT("3 x 3"));
 		BingoSizeComboBox->AddOption(TEXT("4 x 4"));
 		BingoSizeComboBox->AddOption(TEXT("5 x 5"));
+		BingoSizeComboBox->AddOption(TEXT("6 x 6"));
+		BingoSizeComboBox->AddOption(TEXT("7 x 7"));
+
 		BingoSizeComboBox->SetSelectedIndex(2); // 기본값 5x5
 	}
 
@@ -68,6 +71,10 @@ void UCB_GameSetup::OnLaunchGameClicked()
 		BingoSize = 4;
 	else if (SizeOption == TEXT("5 x 5"))
 		BingoSize = 5;
+	else if (SizeOption == TEXT("6 x 6"))
+		BingoSize = 6;
+	else if (SizeOption == TEXT("7 x 7"))
+		BingoSize = 7;
 
 	int32 RequiredQuestionCount = BingoSize * BingoSize;
 
@@ -200,7 +207,9 @@ void UCB_GameSetup::UpdateSetupValidation()
 	if (SizeOption == TEXT("3 x 3")) BingoSize = 3;
 	else if (SizeOption == TEXT("4 x 4")) BingoSize = 4;
 	else if (SizeOption == TEXT("5 x 5")) BingoSize = 5;
-
+	else if (SizeOption == TEXT("6 x 6"))  BingoSize = 6;
+	else if (SizeOption == TEXT("7 x 7"))  BingoSize = 7;
+	
 	int32 RequiredCount = BingoSize * BingoSize; // 필요한 칸 수 계산 (9, 16, 25)
 
 	// 우측 상세 패널 "빙고 크기" 문자열 연동
@@ -209,12 +218,11 @@ void UCB_GameSetup::UpdateSetupValidation()
 		FString SizeStr = FString::Printf(TEXT("%d x %d (%d칸)"), BingoSize, BingoSize, RequiredCount);
 		Text_InfoSize->SetText(FText::FromString(SizeStr));
 	}
-	
+
 	UObject* SelectedItem = SaveFileListView ? SaveFileListView->GetSelectedItem() : nullptr;
 
 	if (!SelectedItem)
 	{
-
 		if (Text_InfoCheck) Text_InfoCheck->SetText(FText::FromString(TEXT("플레이할 세이브 파일을 왼쪽에서 골라주세요.")));
 		if (Text_InfoStatus) Text_InfoStatus->SetText(FText::FromString(TEXT("대기 중")));
 		if (Btn_LaunchGame) Btn_LaunchGame->SetIsEnabled(false); // 버튼 잠금
@@ -248,7 +256,7 @@ void UCB_GameSetup::UpdateSetupValidation()
 		}
 
 		if (Text_InfoStatus) Text_InfoStatus->SetText(FText::FromString(TEXT("● 문제 부족")));
-		if (Btn_LaunchGame) Btn_LaunchGame->SetIsEnabled(false); 
+		if (Btn_LaunchGame) Btn_LaunchGame->SetIsEnabled(false);
 	}
 }
 
@@ -279,7 +287,7 @@ void UCB_GameSetup::OnSaveFileSelected(UObject* Item)
 		if (Text_InfoCount) Text_InfoCount->SetText(FText::FromString(TEXT("0문제")));
 		TargetDate = TEXT("---- -- --");
 	}
-	
+
 	if (Text_InfoDate)
 	{
 		Text_InfoDate->SetText(FText::FromString(TargetDate));
