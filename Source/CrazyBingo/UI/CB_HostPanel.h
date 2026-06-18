@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Data/CB_DataTable_Question.h"
 #include "CB_HostPanel.generated.h"
 
 /**
@@ -24,6 +25,9 @@ protected:
 	virtual void NativeConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
+	UButton* Btn_Reroll;
+	
+	UPROPERTY(meta = (BindWidget))
 	UButton* Btn_TeamA_Win;
 
 	UPROPERTY(meta = (BindWidget))
@@ -38,9 +42,12 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Text_Explanation;
 
-	UPROPERTY(meta = (BindWidget))
-	class UWebBrowser* WebBrowser_Youtube; 
+	// UPROPERTY(meta = (BindWidget))
+	// class UWebBrowser* WebBrowser_Youtube; 
 
+	UFUNCTION()
+	void RerollCellQuestion();
+	
 	UFUNCTION()
 	void OnTeamAWinClicked();
 
