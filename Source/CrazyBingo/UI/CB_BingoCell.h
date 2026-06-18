@@ -27,8 +27,7 @@ public:
 	uint8 AssignedTeamNumber = 0;
 	
 	int32 CellIndex = 0;
-	
-	void InitCellData(int32 InNumber, const FString& InCategory);
+
 
 	void OccupyCell(uint8 TeamNumber);
 
