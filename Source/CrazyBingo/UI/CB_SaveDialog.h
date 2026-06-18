@@ -23,16 +23,15 @@ public:
 	// 메인 화면에서 팝업을 띄운 후 이 함수로 주소를 넘겨줄 겁니다.
 	void SetOwningWidget(UCB_AddQuestion* InParent);
 
+	UPROPERTY(meta = (BindWidget))
+	UEditableTextBox* NewFileNameInput;
 protected:
 	virtual void NativeConstruct() override;
 
 	// UI 컴포넌트 변수들 (블루프린트 이름과 매칭)
 	UPROPERTY(meta = (BindWidget))
 	UListView* SaveFileList;
-
-	UPROPERTY(meta = (BindWidget))
-	UEditableTextBox* NewFileNameInput;
-
+	
 	UPROPERTY(meta = (BindWidget))
 	UButton* Btn_Confirm;
 
@@ -41,7 +40,6 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_DeleteSelectedSave;
-
 
 	//불러오기
 	UPROPERTY(meta = (BindWidget))

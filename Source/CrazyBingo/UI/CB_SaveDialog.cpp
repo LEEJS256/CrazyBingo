@@ -218,7 +218,9 @@ void UCB_SaveDialog::RefreshSaveFileList()
         
 		UCB_SaveSlotData* NewData = NewObject<UCB_SaveSlotData>(this);
 		NewData->SlotName = SlotName;
-        
+
+		NewData->OwningSaveDialog = this;
+		
 		SaveFileList->AddItem(NewData);
 	}
 }
