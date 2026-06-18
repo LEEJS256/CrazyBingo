@@ -48,8 +48,8 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	UTextBlock* Text_InitialHint;
 
-	UPROPERTY(meta = (BindWidget))
-	class UWebBrowser* WebBrowser_Youtube;
+	// UPROPERTY(meta = (BindWidget))
+	// class UWebBrowser* WebBrowser_Youtube;
 	
 
 	UPROPERTY(meta = (BindWidget))

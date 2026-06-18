@@ -79,20 +79,7 @@ if (!Text_QuestionType || !Text_QuestionBody || !QuestionTypeSwitcher) return;
     case ECB_QuestionType::YoutubeLink: // 유튜브 링크
         Text_QuestionType->SetText(FText::FromString(TEXT("음악/영상 퀴즈")));
         QuestionTypeSwitcher->SetActiveWidgetIndex(2); // 2번 유튜브 방 오픈
-
-        if (WebBrowser_Youtube && !QuestionData.YoutubeURL.IsEmpty())
-        {
-            FString TargetURL = QuestionData.YoutubeURL;
-
-            if (TargetURL.Contains(TEXT("watch?v=")))
-            {
-                TargetURL = TargetURL.Replace(TEXT("watch?v="), TEXT("embed/"));
-              
-                TargetURL += TEXT("?autoplay=1"); 
-            }
-
-            WebBrowser_Youtube->LoadURL(TargetURL);
-        }
+    
         break;
 
     case ECB_QuestionType::ShortAnswer: // 단답형
