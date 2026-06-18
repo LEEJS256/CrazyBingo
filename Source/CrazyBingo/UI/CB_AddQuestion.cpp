@@ -12,14 +12,13 @@
 #include "Components/Button.h"
 #include "Components/ComboBoxString.h"
 #include "Components/EditableText.h"
-#include "Components/EditableTextBox.h"
 #include "Components/Image.h"
 #include "Components/ListView.h"
 #include "Components/MultiLineEditableText.h"
+#include "Components/MultiLineEditableTextBox.h"
 #include "Components/SpinBox.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetSwitcher.h"
-#include "GameInstance/CB_GameInstance.h"
 
 void UCB_AddQuestion::NativeConstruct()
 {
@@ -56,11 +55,16 @@ void UCB_AddQuestion::NativeConstruct()
 		FilterComboBox->OnSelectionChanged.AddDynamic(this, &UCB_AddQuestion::OnFilterChanged);
 
 
+	if (IsValid(Btn_ResetImage))
+	{
+		Btn_ResetImage->OnClicked.AddDynamic(this, &UCB_AddQuestion::OnResetImageClicked);
+	}
+
 	if (Btn_LoadSelected)
 	{
 		Btn_LoadSelected->OnClicked.AddDynamic(this, &UCB_AddQuestion::OnLoadSelectedClicked);
 	}
-	
+
 	RefreshListView();
 }
 
@@ -99,9 +103,35 @@ void UCB_AddQuestion::OnLoadSelectedClicked()
 	if (TemporaryQuestionList.IsValidIndex(TargetIndex))
 	{
 		SelectAndLoadQuestionData(TemporaryQuestionList[TargetIndex]);
-		
+
 		UE_LOG(LogTemp, Log, TEXT("[불러오기 완료] %d번 문제를 편집창으로 성공적으로 로드했습니다."), TargetIndex + 1);
 	}
+}
+
+void UCB_AddQuestion::OnResetImageClicked()
+{
+	SelectedAbsoluteImagePath = TEXT("");
+
+	// UI 비주얼 청소
+	if (IsValid(Image_Preview))
+	{
+		Image_Preview->SetBrushFromTexture(nullptr);
+	}
+
+	if (IsValid(Text_SelectedImagePath))
+	{
+		Text_SelectedImagePath->SetText(FText::GetEmpty());
+	}
+
+	// 2. 🌟 [데이터 초기화] 문제 등록 시 저장하려고 들고 있던 
+	// 고유 텍스처 포인터나 이미지 경로 변수(예: SelectedTexture 등)가 있다면 여기서 함께 nullptr 처리를 해줍니다.
+	/* if (SelectedTexture != nullptr)
+	{
+		SelectedTexture = nullptr;
+	}
+	*/
+
+	UE_LOG(LogTemp, Log, TEXT("[퀴즈 등록창] 올렸던 이미지가 성공적으로 초기화되었습니다. (텍스트 전용 문제 상태)"));
 }
 
 void UCB_AddQuestion::OnQuestionTypeChanged(FString SelectedItem, ESelectInfo::Type SelectionType)
@@ -176,12 +206,11 @@ void UCB_AddQuestion::OnModifyButtonClicked()
 			if (CurrentType == TEXT("객관식")) EditedData.QuestionType = ECB_QuestionType::MultipleChoice;
 			else if (CurrentType == TEXT("초성")) EditedData.QuestionType = ECB_QuestionType::InitialSound;
 			else if (CurrentType == TEXT("유튜브 링크")) EditedData.QuestionType = ECB_QuestionType::YoutubeLink;
-				// 🌟 보정: 콤보박스 아이템 등록명인 "유튜브 링크"와 일치해야 매핑됩니다!
 			else if (CurrentType == TEXT("단답형")) EditedData.QuestionType = ECB_QuestionType::ShortAnswer;
 		}
 
 		EditedData.ImageAssetPath = SelectedAbsoluteImagePath;
-		
+
 		// 덮어쓰기 후 체크박스는 깔끔하게 꺼지도록 false 처리
 		EditedData.bIsCheckedForDelete = false;
 
@@ -190,12 +219,10 @@ void UCB_AddQuestion::OnModifyButtonClicked()
 
 		UE_LOG(LogTemp, Log, TEXT("[수정완료] %d번 문제 위치에 성공적으로 데이터를 덮어썼습니다."), TargetIndex + 1);
 
-		// 3. 🌟 [핵심 수정] 입력란 비우고, 가상 리프레시가 아니라 "진짜 갱신(RefreshListView)"을 때려줍니다!
 		ClearInputFields();
 		RefreshListView();
 	}
 }
-
 
 
 void UCB_AddQuestion::OnAddClicked()
@@ -527,18 +554,22 @@ void UCB_AddQuestion::SelectAndLoadQuestionData(const FCB_DataTable_Question& Ta
 	if (ScoreSpinBox) ScoreSpinBox->SetValue(TargetData.Score);
 
 	// 2. 객관식 보기 채우기 (배열 안전성 체크)
-	if (ChoiceInput_1) ChoiceInput_1->SetText(TargetData.Choices.IsValidIndex(0)
-		                                          ? FText::FromString(TargetData.Choices[0])
-		                                          : FText::GetEmpty());
-	if (ChoiceInput_2) ChoiceInput_2->SetText(TargetData.Choices.IsValidIndex(1)
-		                                          ? FText::FromString(TargetData.Choices[1])
-		                                          : FText::GetEmpty());
-	if (ChoiceInput_3) ChoiceInput_3->SetText(TargetData.Choices.IsValidIndex(2)
-		                                          ? FText::FromString(TargetData.Choices[2])
-		                                          : FText::GetEmpty());
-	if (ChoiceInput_4) ChoiceInput_4->SetText(TargetData.Choices.IsValidIndex(3)
-		                                          ? FText::FromString(TargetData.Choices[3])
-		                                          : FText::GetEmpty());
+	if (ChoiceInput_1)
+		ChoiceInput_1->SetText(TargetData.Choices.IsValidIndex(0)
+			                       ? FText::FromString(TargetData.Choices[0])
+			                       : FText::GetEmpty());
+	if (ChoiceInput_2)
+		ChoiceInput_2->SetText(TargetData.Choices.IsValidIndex(1)
+			                       ? FText::FromString(TargetData.Choices[1])
+			                       : FText::GetEmpty());
+	if (ChoiceInput_3)
+		ChoiceInput_3->SetText(TargetData.Choices.IsValidIndex(2)
+			                       ? FText::FromString(TargetData.Choices[2])
+			                       : FText::GetEmpty());
+	if (ChoiceInput_4)
+		ChoiceInput_4->SetText(TargetData.Choices.IsValidIndex(3)
+			                       ? FText::FromString(TargetData.Choices[3])
+			                       : FText::GetEmpty());
 
 	// 3. 콤보박스 선택 전환
 	if (QuestionTypeComboBox)
@@ -561,6 +592,7 @@ void UCB_AddQuestion::SelectAndLoadQuestionData(const FCB_DataTable_Question& Ta
 	// 📸 4. 이미지 미리보기 창도 채워주기
 	// 탐색기로 고른 임시 주소가 남아있다면 런타임 로드해서 프리뷰 띄움
 	SelectedAbsoluteImagePath = TargetData.ImageAssetPath;
+
 	if (Image_Preview)
 	{
 		if (!SelectedAbsoluteImagePath.IsEmpty())
@@ -570,15 +602,17 @@ void UCB_AddQuestion::SelectAndLoadQuestionData(const FCB_DataTable_Question& Ta
 		}
 		else
 		{
+			// 🌟 이미지가 없는 문제라면 프리뷰 브러시를 확실하게 비워줍니다.
 			Image_Preview->SetBrushFromTexture(nullptr);
 		}
 	}
 
 	if (Text_SelectedImagePath)
 	{
+		// 🌟 변수가 비어있다면 텍스트창도 완벽하게 공백이나 "선택된 파일 없음"으로 덮어씁니다.
 		Text_SelectedImagePath->SetText(SelectedAbsoluteImagePath.IsEmpty()
-			                                ? FText::FromString(TEXT("선택된 파일 없음"))
-			                                : FText::FromString(SelectedAbsoluteImagePath));
+											? FText::FromString(TEXT(""))
+											: FText::FromString(SelectedAbsoluteImagePath));
 	}
 }
 
@@ -607,4 +641,6 @@ void UCB_AddQuestion::ClearInputFields()
 		InitialSoundHintInput->SetText(FText::GetEmpty());
 	if (YoutubeURLInput)
 		YoutubeURLInput->SetText(FText::GetEmpty());
+
+	OnResetImageClicked();
 }

@@ -30,7 +30,7 @@ protected:
     class UMultiLineEditableText* QuestionTextInput; // 멀티라인은 UEditableText 사용 권장
 
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* YoutubeURLInput;
+    class UMultiLineEditableTextBox* YoutubeURLInput;
 
 	// 🌟 1. 총 문제 개수만 깔끔하게 표시할 텍스트 (예: "등록된 총 문제: 15개")
 	UPROPERTY(meta = (BindWidget))
@@ -42,28 +42,28 @@ protected:
 	
     // 객관식 보기 4개 (배열로 묶어 다루면 편합니다)
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* ChoiceInput_1;
+    class UMultiLineEditableTextBox* ChoiceInput_1;
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* ChoiceInput_2;
+    class UMultiLineEditableTextBox* ChoiceInput_2;
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* ChoiceInput_3;
+    class UMultiLineEditableTextBox* ChoiceInput_3;
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* ChoiceInput_4;
+    class UMultiLineEditableTextBox* ChoiceInput_4;
 
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* AnswerInput;
+    class UMultiLineEditableTextBox* AnswerInput;
 
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* InitialSoundHintInput;
+    class UMultiLineEditableTextBox* InitialSoundHintInput;
 
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* HintInput;
+    class UMultiLineEditableTextBox* HintInput;
 
     UPROPERTY(meta = (BindWidget))
     class USpinBox* ScoreSpinBox;
 
     UPROPERTY(meta = (BindWidget))
-    class UEditableTextBox* ExplanationInput;
+    class UMultiLineEditableTextBox* ExplanationInput;
 
     // 특정 타입 선택 시 관련 입력창만 켜고 끄기 위한 위젯 스위처
     UPROPERTY(meta = (BindWidget))
@@ -72,6 +72,9 @@ protected:
     UPROPERTY(meta = (BindWidget))
     class UListView* QuestionListView;
 
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_ResetImage;
+	
     UPROPERTY(meta = (BindWidget))
     class UButton* AddButton;
 
@@ -105,9 +108,12 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 	class UButton* Btn_LoadSelected;
 
-	// 🌟 버튼을 눌렀을 때 실행될 함수
+
 	UFUNCTION()
 	void OnLoadSelectedClicked();
+
+	UFUNCTION()
+	void OnResetImageClicked();
 	
 	UPROPERTY(meta = (BindWidget))
 	class UComboBoxString* FilterComboBox;
