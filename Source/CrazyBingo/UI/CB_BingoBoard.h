@@ -32,6 +32,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void CheckBingo();
+
+	UFUNCTION()
+	void OnToggleGridSizeClicked();
 	
 	UFUNCTION(BlueprintCallable, Category = "Bingo|Host")
 	void SetCellOwnerByHost(uint8 TeamNumber);
@@ -39,6 +42,9 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "Host")
 	class UCB_HostPanel* TargetHostPanel;
 
+	// 호스트 패널이 호출해 줄 진짜 리롤 처리 함수
+	void RerollCellQuestion(int32 TargetIndex);
+	
 protected:
 	virtual void NativeConstruct() override;
 
@@ -59,6 +65,16 @@ protected:
 	
 	int32 BingoCount = 0;
 
+
+	UPROPERTY(meta = (BindWidgetAnimation), Transient)
+	UWidgetAnimation* AN_ScaleGrid;
+	
+	UPROPERTY(meta = (BindWidget))
+	class UButton* Btn_ToggleGridSize;
+
+	bool bIsGridZoomed = false;
+	
+	
 	UPROPERTY(meta = (BindWidget))
 	class UCB_BingoScoreBoard* BingoScoreBoard; 
 

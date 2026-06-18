@@ -9,6 +9,7 @@
 #include "CB_MainMenu.h"
 #include "CB_QuestionBoard.h"
 #include "CB_ResultPopup.h"
+#include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
@@ -63,8 +64,7 @@ void UCB_BingoBoard::OnCellSelected(int32 SelectedIndex)
 	if (CurrentRoundQuestions.IsValidIndex(SelectedIndex))
 	{
 		FCB_DataTable_Question TargetQuestion = CurrentRoundQuestions[SelectedIndex];
-
-		// 🌟 우측 만능 전광판 부품에게 구조체를 통째로 토스!!
+		
 		QuestionBoard->SetQuestion(TargetQuestion);
 
 		UE_LOG(LogTemp, Log, TEXT("[보드] QuestionBoard 연동 완료: %s"), *TargetQuestion.QuestionText);
@@ -77,14 +77,14 @@ void UCB_BingoBoard::OnCellSelected(int32 SelectedIndex)
 
 
 	// 4. 셀 상태가 바뀌었으니 빙고가 완성되었는지 실시간 체크
-	CheckBingo();
+	// CheckBingo();
 }
 
 void UCB_BingoBoard::InitBoard(int32 InBoardSize)
 {
 	if (!BingoGrid || !BingoCellClass) return;
 
-	// 🌟 전달받은 크기(3, 4, 5)를 저장
+
 	BoardSize = InBoardSize;
 	int32 TotalCellCount = BoardSize * BoardSize;
 
@@ -146,131 +146,190 @@ void UCB_BingoBoard::InitBoard(int32 InBoardSize)
 
 void UCB_BingoBoard::CheckBingo()
 {
-	// Early Return 방어선
 	if (!IsValid(BingoScoreBoard)) return;
 
 	int32 TeamABingoCount = 0;
 	int32 TeamBBingoCount = 0;
 
 	// -------------------------------------------------------------------------
-	// 1. A팀 (AssignedTeamNumber == 1) 빙고 줄 수 계산
+	// 1. A팀 (AssignedTeamNumber == 1) 및 B팀 (AssignedTeamNumber == 2) 빙고 계산
 	// -------------------------------------------------------------------------
-	// 가로 체크
+	
+	// [가로 체크]
 	for (int32 Row = 0; Row < BoardSize; Row++)
 	{
-		bool bLine = true;
+		bool bLineA = true;
+		bool bLineB = true;
 		for (int32 Col = 0; Col < BoardSize; Col++)
 		{
 			UCB_BingoCell* Cell = Cells[Row * BoardSize + Col];
-			// 세포가 선택 상태이며, 방금 만든 소유주 변수가 1(A팀)인지 확인
-			if (!Cell->bSelected || Cell->AssignedTeamNumber != 1)
-			{
-				bLine = false;
-				break;
-			}
+			if (!Cell->bSelected || Cell->AssignedTeamNumber != 1) bLineA = false;
+			if (!Cell->bSelected || Cell->AssignedTeamNumber != 2) bLineB = false;
 		}
-		if (bLine) TeamABingoCount++;
+		if (bLineA) TeamABingoCount++;
+		if (bLineB) TeamBBingoCount++;
 	}
-	// 세로 체크
+
+	// [세로 체크]
 	for (int32 Col = 0; Col < BoardSize; Col++)
 	{
-		bool bLine = true;
+		bool bLineA = true;
+		bool bLineB = true;
 		for (int32 Row = 0; Row < BoardSize; Row++)
 		{
 			UCB_BingoCell* Cell = Cells[Row * BoardSize + Col];
-			if (!Cell->bSelected || Cell->AssignedTeamNumber != 1)
-			{
-				bLine = false;
-				break;
-			}
+			if (!Cell->bSelected || Cell->AssignedTeamNumber != 1) bLineA = false;
+			if (!Cell->bSelected || Cell->AssignedTeamNumber != 2) bLineB = false;
 		}
-		if (bLine) TeamABingoCount++;
+		if (bLineA) TeamABingoCount++;
+		if (bLineB) TeamBBingoCount++;
 	}
-	// 대각선 체크
+
+	// [대각선 체크]
 	bool bDiag1_A = true, bDiag2_A = true;
-	for (int32 i = 0; i < BoardSize; i++)
-	{
-		if (!Cells[i * BoardSize + i]->bSelected || Cells[i * BoardSize + i]->AssignedTeamNumber != 1) bDiag1_A = false;
-		if (!Cells[i * BoardSize + ((BoardSize - 1) - i)]->bSelected || Cells[i * BoardSize + ((BoardSize - 1) - i)]->
-			AssignedTeamNumber != 1) bDiag2_A = false;
-	}
-	if (bDiag1_A) TeamABingoCount++;
-	if (bDiag2_A) TeamABingoCount++;
-
-
-	// -------------------------------------------------------------------------
-	// 2. B팀 (AssignedTeamNumber == 2) 빙고 줄 수 계산
-	// -------------------------------------------------------------------------
-	// 가로 체크
-	for (int32 Row = 0; Row < BoardSize; Row++)
-	{
-		bool bLine = true;
-		for (int32 Col = 0; Col < BoardSize; Col++)
-		{
-			UCB_BingoCell* Cell = Cells[Row * BoardSize + Col];
-			if (!Cell->bSelected || Cell->AssignedTeamNumber != 2)
-			{
-				bLine = false;
-				break;
-			}
-		}
-		if (bLine) TeamBBingoCount++;
-	}
-	// 세로 체크
-	for (int32 Col = 0; Col < BoardSize; Col++)
-	{
-		bool bLine = true;
-		for (int32 Row = 0; Row < BoardSize; Row++)
-		{
-			UCB_BingoCell* Cell = Cells[Row * BoardSize + Col];
-			if (!Cell->bSelected || Cell->AssignedTeamNumber != 2)
-			{
-				bLine = false;
-				break;
-			}
-		}
-		if (bLine) TeamBBingoCount++;
-	}
-	// 대각선 체크
 	bool bDiag1_B = true, bDiag2_B = true;
 	for (int32 i = 0; i < BoardSize; i++)
 	{
-		if (!Cells[i * BoardSize + i]->bSelected || Cells[i * BoardSize + i]->AssignedTeamNumber != 2) bDiag1_B = false;
-		if (!Cells[i * BoardSize + ((BoardSize - 1) - i)]->bSelected || Cells[i * BoardSize + ((BoardSize - 1) - i)]->
-			AssignedTeamNumber != 2) bDiag2_B = false;
+		// 주대각선 (\)
+		UCB_BingoCell* Cell1 = Cells[i * BoardSize + i];
+		if (!Cell1->bSelected || Cell1->AssignedTeamNumber != 1) bDiag1_A = false;
+		if (!Cell1->bSelected || Cell1->AssignedTeamNumber != 2) bDiag1_B = false;
+
+		// 부대각선 (/)
+		UCB_BingoCell* Cell2 = Cells[i * BoardSize + ((BoardSize - 1) - i)];
+		if (!Cell2->bSelected || Cell2->AssignedTeamNumber != 1) bDiag2_A = false;
+		if (!Cell2->bSelected || Cell2->AssignedTeamNumber != 2) bDiag2_B = false;
 	}
+	if (bDiag1_A) TeamABingoCount++;
+	if (bDiag2_A) TeamABingoCount++;
 	if (bDiag1_B) TeamBBingoCount++;
 	if (bDiag2_B) TeamBBingoCount++;
 
 
 	// -------------------------------------------------------------------------
-	// 3. 준식님이 만드신 최종 전광판 UI 새로고침 함수 바인딩 호출
+	// 2. 🌟 [핵심 버그 수정 구역] 정답/오답 불문하고 '체크 완료된 모든 칸' 카운트
 	// -------------------------------------------------------------------------
-	BingoScoreBoard->RefreshBingoUI(TeamABingoCount, true); // A팀 텍스트 줄 수 세팅
-	BingoScoreBoard->RefreshBingoUI(TeamBBingoCount, false); // B팀 텍스트 줄 수 세팅
-
-	UE_LOG(LogTemp, Log, TEXT("[빙고 라인 연동] A팀: %d줄 / B팀: %d줄 실시간 갱신 완료"), TeamABingoCount, TeamBBingoCount);
-
 	int32 TotalSelectedCells = 0;
 	for (UCB_BingoCell* Cell : Cells)
 	{
-		// 호스트가 무효화(0번)한 칸을 제외하고 팀 A(1) 또는 팀 B(2)로 점령된 칸만 셉니다.
-		if (IsValid(Cell) && Cell->bSelected && Cell->AssignedTeamNumber > 0)
+		if (IsValid(Cell))
 		{
-			TotalSelectedCells++;
+			// 💡 포인트: 'bSelected'가 true라면 (팀A든, 팀B든, 혹은 호스트가 무효(0)로 풀었든 간에)
+			// 진행자가 문제를 출제해서 '완료 처리'를 끝낸 칸이므로 무조건 숫자를 셉니다!
+			if (Cell->bSelected)
+			{
+				TotalSelectedCells++;
+			}
 		}
 	}
 
-	// 기존 호출 함수에 총 선택된 세포 개수(TotalSelectedCells) 인자를 추가하여 토스합니다.
+	// -------------------------------------------------------------------------
+	// 3. 전광판 UI 실시간 새로고침 및 게임 오버 판정선 전송
+	// -------------------------------------------------------------------------
+	BingoScoreBoard->RefreshBingoUI(TeamABingoCount, true);
+	BingoScoreBoard->RefreshBingoUI(TeamBBingoCount, false);
+
+	UE_LOG(LogTemp, Log, TEXT("[빙고 라인 연동] A팀: %d줄 / B팀: %d줄 / 진행 완료된 칸: %d/%d"), 
+		TeamABingoCount, TeamBBingoCount, TotalSelectedCells, Cells.Num());
+
+	// 🌟 이제 중간에 오답이 껴서 빙고가 안 만들어져도, TotalSelectedCells가 전체 칸 개수에 도달하면 칼같이 종료 판단을 내립니다!
 	CheckOutGameOver(TeamABingoCount, TeamBBingoCount, TotalSelectedCells);
+}
+
+void UCB_BingoBoard::OnToggleGridSizeClicked()
+{
+	if (!AN_ScaleGrid) return;
+
+	if (bIsGridZoomed)
+	{
+		// 1. 이미 커진 상태라면 원래 크기로 줄입니다 (역재생)
+		PlayAnimation(AN_ScaleGrid, 0.0f, 1, EUMGSequencePlayMode::Reverse, 1.0f);
+		bIsGridZoomed = false;
+		
+		UE_LOG(LogTemp, Log, TEXT("[보드] 빙고판 크기 축소"));
+	}
+	else
+	{
+		// 2. 작은 상태라면 화면에서 크게 키웁니다 (정방향 재생)
+		PlayAnimation(AN_ScaleGrid, 0.0f, 1, EUMGSequencePlayMode::Forward, 1.0f);
+		bIsGridZoomed = true;
+		
+		UE_LOG(LogTemp, Log, TEXT("[보드] 빙고판 크기 확대"));
+	}
+}
+
+void UCB_BingoBoard::RerollCellQuestion(int32 TargetIndex)
+{
+
+	if (!Cells.IsValidIndex(TargetIndex) || !CurrentRoundQuestions.IsValidIndex(TargetIndex)) return;
+
+	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
+	if (!GI) return;
+
+
+	const TArray<FCB_DataTable_Question>& AllQuestions = GI->Questions; 
 	
-	// CheckOutGameOver(TeamABingoCount,TeamBBingoCount);
+	if (AllQuestions.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[리롤 실패] GameInstance에 로드된 전체 문제가 없습니다."));
+		return;
+	}
+
+	// ─── 아래 중복 필터링 및 교체 로직은 그대로 유지 ───
+	TArray<FCB_DataTable_Question> AvailableCandidates;
+	for (const FCB_DataTable_Question& TotalQ : AllQuestions)
+	{
+		bool bIsAlreadyUsed = false;
+		for (const FCB_DataTable_Question& CurrentQ : CurrentRoundQuestions)
+		{
+			if (TotalQ.QuestionText.Equals(CurrentQ.QuestionText))
+			{
+				bIsAlreadyUsed = true;
+				break;
+			}
+		}
+
+		if (!bIsAlreadyUsed)
+		{
+			AvailableCandidates.Add(TotalQ);
+		}
+	}
+
+	if (AvailableCandidates.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[리롤 실패] 중복되지 않는 남은 문제가 부족합니다!"));
+		return;
+	}
+
+	int32 RandomIdx = FMath::RandRange(0, AvailableCandidates.Num() - 1);
+	FCB_DataTable_Question NewQuestion = AvailableCandidates[RandomIdx];
+
+	CurrentRoundQuestions[TargetIndex] = NewQuestion;
+
+	if (UCB_BingoCell* TargetCell = Cells[TargetIndex])
+	{
+		TargetCell->InitCellData(TargetCell->Number, NewQuestion.Category, this, TargetIndex);
+		UE_LOG(LogTemp, Log, TEXT("[리롤 성공] %d번 칸 문제 교체 완료 -> 카테고리: %s"), TargetIndex + 1, *NewQuestion.Category);
+	}
+
+	if (CurrentOpenedCellIndex == TargetIndex)
+	{
+		if (QuestionBoard)
+			QuestionBoard->SetQuestion(NewQuestion);
+		// if (IsValid(TargetHostPanel))
+		// 	TargetHostPanel->SetCurrentQuestionInfo(TargetIndex, NewQuestion);
+	}
 }
 
 void UCB_BingoBoard::NativeConstruct()
 {
 	Super::NativeConstruct();
 	// InitBoard();
+
+	if (Btn_ToggleGridSize)
+	{
+		Btn_ToggleGridSize->OnClicked.AddDynamic(this, &UCB_BingoBoard::OnToggleGridSizeClicked);
+	}
 }
 
 
