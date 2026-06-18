@@ -4,7 +4,9 @@
 #include "UI/CB_SaveSlotRow.h"
 
 #include "CB_GameSetup.h"
+#include "CB_SaveDialog.h"
 #include "Components/CheckBox.h"
+#include "Components/EditableTextBox.h"
 #include "Components/ListView.h"
 #include "Components/TextBlock.h"
 #include "Utility/CB_SaveSlotData.h"
@@ -40,16 +42,29 @@ void UCB_SaveSlotRow::OnCheckBoxStateChanged(bool bIsChecked)
 		// 화면의 체크 상태를 원본 데이터 주머니에 동기화해줍니다!
 		MyItemData->bIsSelected = bIsChecked;
 
-		if (bIsChecked && MyItemData->OwningGameSetup)
+		if (bIsChecked)
 		{
-
-			if (MyItemData->OwningGameSetup->SaveFileListView)
+			// ① [방어선 1] 팝업창(SaveDialog) 부모가 살아있을 때만 연동 처리
+			if (MyItemData->OwningSaveDialog)
 			{
-				MyItemData->OwningGameSetup->SaveFileListView->SetSelectedItem(MyItemData);
+				if (IsValid(MyItemData->OwningSaveDialog->NewFileNameInput))
+				{
+					// 체크박스를 켠 행의 파일 이름을 팝업창 텍스트 박스에 복사!
+					MyItemData->OwningSaveDialog->NewFileNameInput->SetText(FText::FromString(MyItemData->SlotName));
+				}
 			}
 
-			// ② 어제 완성했던 부모(GameSetup)의 우측 패널 정보 갱신 함수를 다이렉트로 호출합니다!
-			MyItemData->OwningGameSetup->OnSaveFileSelected(MyItemData);
+			// ② [방어선 2 - 널 크래시 방지] OwningGameSetup이 '진짜 유효할 때만' 내부 로직을 타도록 감싸줍니다!
+			if (MyItemData->OwningGameSetup)
+			{
+				if (IsValid(MyItemData->OwningGameSetup->SaveFileListView))
+				{
+					MyItemData->OwningGameSetup->SaveFileListView->SetSelectedItem(MyItemData);
+				}
+
+				// 부모(GameSetup)의 우측 패널 정보 갱신 함수 호출
+				MyItemData->OwningGameSetup->OnSaveFileSelected(MyItemData);
+			}
 		}
 	}
 }
