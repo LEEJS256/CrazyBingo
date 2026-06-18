@@ -22,5 +22,8 @@ public:
 
 	UPROPERTY()
 	class UCB_GameSetup* OwningGameSetup;
+
+	UPROPERTY()
+	class UCB_SaveDialog* OwningSaveDialog;
 	
 };
