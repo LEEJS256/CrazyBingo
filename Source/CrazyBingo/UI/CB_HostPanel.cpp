@@ -52,7 +52,6 @@ void UCB_HostPanel::SetCurrentQuestionInfo(int32 CellIndex, const FCB_DataTable_
 	}
 
 	// 4. 주소 조립 및 윈도우 외부 브라우저 실행
-	// 🌟 [핵심 교정] VideoID가 정상적으로 파싱되었을 때'만' 중괄호 내부에서 실행되도록 격리합니다.
 	if (!VideoID.IsEmpty())
 	{
 		TargetURL = FString::Printf(TEXT("https://www.youtube.com/v/%s?autoplay=1"), *VideoID);

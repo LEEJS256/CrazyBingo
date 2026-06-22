@@ -44,7 +44,7 @@ void UCB_SaveSlotRow::OnCheckBoxStateChanged(bool bIsChecked)
 
 		if (bIsChecked)
 		{
-			// ① [방어선 1] 팝업창(SaveDialog) 부모가 살아있을 때만 연동 처리
+
 			if (MyItemData->OwningSaveDialog)
 			{
 				if (IsValid(MyItemData->OwningSaveDialog->NewFileNameInput))
@@ -54,7 +54,6 @@ void UCB_SaveSlotRow::OnCheckBoxStateChanged(bool bIsChecked)
 				}
 			}
 
-			// ② [방어선 2 - 널 크래시 방지] OwningGameSetup이 '진짜 유효할 때만' 내부 로직을 타도록 감싸줍니다!
 			if (MyItemData->OwningGameSetup)
 			{
 				if (IsValid(MyItemData->OwningGameSetup->SaveFileListView))

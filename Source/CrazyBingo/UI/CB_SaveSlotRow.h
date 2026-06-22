@@ -19,8 +19,7 @@ class CRAZYBINGO_API UCB_SaveSlotRow : public UUserWidget , public IUserObjectLi
 	GENERATED_BODY()
 
 protected:
-	// 🌟 인터페이스가 제공하는 원본 함수를 오버라이드합니다.
-	// 리스트뷰에 아이템이 세팅될 때 엔진에 의해 자동으로 호출됩니다.
+
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
 
 	UFUNCTION()
