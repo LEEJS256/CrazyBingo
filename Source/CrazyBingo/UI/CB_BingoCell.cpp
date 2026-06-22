@@ -53,24 +53,24 @@ void UCB_BingoCell::OccupyCell(uint8 TeamNumber)
 	if (TeamNumber == 1)
 	{
 		FLinearColor ColorA = GI->GetTeamColor(true);
-		CellBackgroundBorder->SetContentColorAndOpacity(ColorA);
+		CellBackgroundBorder->SetBrushColor(ColorA);
 
 		UE_LOG(LogTemp, Log, TEXT("[세포 갱신] %d번 세포가 A팀 색상으로 채워졌습니다."), CellIndex + 1);
 	}
 	else if (TeamNumber == 2)
 	{
 		FLinearColor ColorB = GI->GetTeamColor(false);
-		CellBackgroundBorder->SetContentColorAndOpacity(ColorB);
+		CellBackgroundBorder->SetBrushColor(ColorB);
 
 		UE_LOG(LogTemp, Log, TEXT("[세포 갱신] %d번 세포가 B팀 색상으로 채워졌습니다."), CellIndex + 1);
 	}
 	else if (TeamNumber == 3)
 	{
-		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.45f, 0.08f, 0.08f, 1.0f));
+		CellBackgroundBorder->SetBrushColor(FLinearColor(0.45f, 0.08f, 0.08f, 1.0f));
 	}
 	else
 	{
-		CellBackgroundBorder->SetContentColorAndOpacity(FLinearColor(0.25f, 0.28f, 0.35f, 1.0f));
+		CellBackgroundBorder->SetBrushColor(FLinearColor(0.25f, 0.28f, 0.35f, 1.0f));
 	}
 }
 
