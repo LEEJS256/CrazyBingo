@@ -85,18 +85,16 @@ void UCB_HostPanel::RerollCellQuestion()
 {
 	if (CachedCellIndex == INDEX_NONE || CachedCellIndex < 0)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("[호스트패널] 현재 선택된 빙고 칸이 없어 문제를 리롤할 수 없습니다!"));
+		UE_LOG(LogTemp, Warning, TEXT("[호스트패널 리롤 거부] 선택된 빙고 칸이 없어 보드판에 리롤을 요청하지 않습니다."));
 		return;
 	}
-
-	// 2. 연결된 빙고 보드가 유효한지 체크 후 리롤 명령 전달
+	
 	if (IsValid(TargetBingoBoard))
 	{
-		// 이전에 설계했던 보드판의 리롤 함수를 호출하면서 현재 칸 인덱스를 던집니다.
 		TargetBingoBoard->RerollCellQuestion(CachedCellIndex);
-		
 		UE_LOG(LogTemp, Log, TEXT("[호스트패널] %d번 칸에 대한 문제 리롤을 보드판에 요청했습니다."), CachedCellIndex + 1);
 	}
+	
 }
 
 void UCB_HostPanel::OnTeamAWinClicked()
