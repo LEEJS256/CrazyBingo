@@ -2,12 +2,9 @@
 
 
 #include "UI/CB_AddQuestion.h"
-
 #include "CB_MainMenu.h"
 #include "CB_QuestionListData.h"
 #include "CB_SaveDialog.h"
-#include "DesktopPlatformModule.h"
-#include "IDesktopPlatform.h"
 #include "ImageUtils.h"
 #include "Components/Button.h"
 #include "Components/ComboBoxString.h"
@@ -19,6 +16,13 @@
 #include "Components/SpinBox.h"
 #include "Components/TextBlock.h"
 #include "Components/WidgetSwitcher.h"
+
+#if PLATFORM_WINDOWS
+#include "Windows/AllowWindowsPlatformTypes.h"
+#include <windows.h>
+#include <commdlg.h>
+#include "Windows/HideWindowsPlatformTypes.h"
+#endif
 
 void UCB_AddQuestion::NativeConstruct()
 {
@@ -395,48 +399,60 @@ void UCB_AddQuestion::OnFilterChanged(FString SelectedItem, ESelectInfo::Type Se
 	RefreshListView();
 }
 
+
+
 void UCB_AddQuestion::OnSelectImageClicked()
 {
-	if (GEngine && GEngine->GameViewport)
+#if PLATFORM_WINDOWS
+	// 1. 파일 경로를 담을 Win32 기본 문자 배열 선언
+	TCHAR FileName[MAX_PATH] = TEXT("");
+	OPENFILENAME ofn;
+
+	// 2. 구조체 메모리 초기화 및 세팅
+	FMemory::Memzero(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	
+	// 현재 열려있는 언리얼 창의 OS 핸들을 부모로 지정하여 포커싱 유지
+	if (GEngine && GEngine->GameViewport && GEngine->GameViewport->GetWindow().IsValid())
 	{
-		void* ParentWindowHandle = GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle();
-		IDesktopPlatform* DesktopPlatform = FDesktopPlatformModule::Get();
-
-		if (DesktopPlatform)
-		{
-			TArray<FString> OpenFileNames;
-			FString FileTypes = TEXT("Image Files (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg");
-
-			// 🌟 Windows 파일 탐색기 팝업 열기
-			bool bOpened = DesktopPlatform->OpenFileDialog(
-				ParentWindowHandle,
-				TEXT("문제에 사용할 이미지 선택"),
-				TEXT(""),
-				TEXT(""),
-				FileTypes,
-				EFileDialogFlags::None,
-				OpenFileNames
-			);
-
-			if (bOpened && OpenFileNames.Num() > 0)
-			{
-				// 유저가 선택한 이미지의 실제 PC 절대 경로 획득!
-				SelectedAbsoluteImagePath = OpenFileNames[0];
-
-				if (Text_SelectedImagePath)
-				{
-					Text_SelectedImagePath->SetText(FText::FromString(SelectedAbsoluteImagePath));
-				}
-
-				// 📸 런타임에 외부 이미지를 동적으로 로드하여 UI 미리보기(Preview)에 띄우기
-				UTexture2D* LoadedTexture = FImageUtils::ImportFileAsTexture2D(SelectedAbsoluteImagePath);
-				if (LoadedTexture && Image_Preview)
-				{
-					Image_Preview->SetBrushFromTexture(LoadedTexture);
-				}
-			}
-		}
+		ofn.hwndOwner = (HWND)GEngine->GameViewport->GetWindow()->GetNativeWindow()->GetOSWindowHandle();
 	}
+	
+	ofn.lpstrFile = FileName;
+	ofn.nMaxFile = MAX_PATH;
+	// 🌟 필터 구조 스트링 매칭 정의 (끝부분에 \0\0 필수)
+	ofn.lpstrFilter = TEXT("Image Files\0*.png;*.jpg;*.jpeg\0All Files\0*.*\0\0");
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = nullptr;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = nullptr;
+	
+	// 파일 및 경로가 실제로 존재할 때만 컨컨하게 여는 플래그 및 언리얼 내부 디렉토리 오염 방지 플래그 추가
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+	// 3. 🌟 순수 Win32 API 호출 (comdlg32.lib를 링크했기 때문에 에디터/빌드본 불문 100% 성공)
+	if (::GetOpenFileName(&ofn))
+	{
+		// Win32 TCHAR 문자열을 언리얼 표준 FString으로 안전하게 변환
+		SelectedAbsoluteImagePath = FString(FileName);
+
+		if (Text_SelectedImagePath)
+		{
+			Text_SelectedImagePath->SetText(FText::FromString(SelectedAbsoluteImagePath));
+		}
+
+		// 런타임에 외부 이미지를 동적 텍스처로 로드하여 프리뷰 위젯에 바인딩
+		UTexture2D* LoadedTexture = FImageUtils::ImportFileAsTexture2D(SelectedAbsoluteImagePath);
+		if (LoadedTexture && Image_Preview)
+		{
+			Image_Preview->SetBrushFromTexture(LoadedTexture);
+		}
+
+		UE_LOG(LogTemp, Log, TEXT("[Win32 로더] 정석 파일 다이얼로그 이미지 로드 성공: %s"), *SelectedAbsoluteImagePath);
+	}
+#else
+	UE_LOG(LogTemp, Warning, TEXT("[플랫폼 경고] 파일 다이얼로그는 현재 Windows 운영체제에서만 지원됩니다."));
+#endif
 }
 
 void UCB_AddQuestion::InitializeUI()
