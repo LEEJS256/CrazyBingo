@@ -32,6 +32,8 @@ void UCB_GameSetup::NativeConstruct()
 		BingoSizeComboBox->AddOption(TEXT("7 x 7"));
 
 		BingoSizeComboBox->SetSelectedIndex(2); // 기본값 5x5
+
+		BingoSizeComboBox->OnSelectionChanged.AddDynamic(this, &UCB_GameSetup::OnBingoSizeChanged);
 	}
 
 	if (SaveFileListView)
