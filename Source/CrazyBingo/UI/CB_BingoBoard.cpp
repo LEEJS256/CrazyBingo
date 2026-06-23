@@ -150,10 +150,6 @@ void UCB_BingoBoard::CheckBingo()
 
 	int32 TeamABingoCount = 0;
 	int32 TeamBBingoCount = 0;
-
-	// -------------------------------------------------------------------------
-	// 1. A팀 (AssignedTeamNumber == 1) 및 B팀 (AssignedTeamNumber == 2) 빙고 계산
-	// -------------------------------------------------------------------------
 	
 	// [가로 체크]
 	for (int32 Row = 0; Row < BoardSize; Row++)
@@ -214,8 +210,6 @@ void UCB_BingoBoard::CheckBingo()
 	{
 		if (IsValid(Cell))
 		{
-			// 💡 포인트: 'bSelected'가 true라면 (팀A든, 팀B든, 혹은 호스트가 무효(0)로 풀었든 간에)
-			// 진행자가 문제를 출제해서 '완료 처리'를 끝낸 칸이므로 무조건 숫자를 셉니다!
 			if (Cell->bSelected)
 			{
 				TotalSelectedCells++;
@@ -231,8 +225,7 @@ void UCB_BingoBoard::CheckBingo()
 
 	UE_LOG(LogTemp, Log, TEXT("[빙고 라인 연동] A팀: %d줄 / B팀: %d줄 / 진행 완료된 칸: %d/%d"), 
 		TeamABingoCount, TeamBBingoCount, TotalSelectedCells, Cells.Num());
-
-	// 🌟 이제 중간에 오답이 껴서 빙고가 안 만들어져도, TotalSelectedCells가 전체 칸 개수에 도달하면 칼같이 종료 판단을 내립니다!
+	
 	CheckOutGameOver(TeamABingoCount, TeamBBingoCount, TotalSelectedCells);
 }
 
@@ -261,21 +254,19 @@ void UCB_BingoBoard::OnToggleGridSizeClicked()
 void UCB_BingoBoard::RerollCellQuestion(int32 TargetIndex)
 {
 
-	if (!Cells.IsValidIndex(TargetIndex) || !CurrentRoundQuestions.IsValidIndex(TargetIndex)) return;
+	if (TargetIndex == INDEX_NONE || TargetIndex < 0 || !Cells.IsValidIndex(TargetIndex) || !CurrentRoundQuestions.IsValidIndex(TargetIndex))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[보드판 리롤 실패] 현재 유효하게 열려있는 빙고 칸이 아닙니다. (인덱스: %d)"), TargetIndex);
+		return;
+	}
 
 	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
 	if (!GI) return;
 
-
 	const TArray<FCB_DataTable_Question>& AllQuestions = GI->Questions; 
-	
-	if (AllQuestions.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[리롤 실패] GameInstance에 로드된 전체 문제가 없습니다."));
-		return;
-	}
+	if (AllQuestions.Num() == 0) return;
 
-	// ─── 아래 중복 필터링 및 교체 로직은 그대로 유지 ───
+	// 1. 중복 검사 후 남은 문제 후보군 긁어모으기
 	TArray<FCB_DataTable_Question> AvailableCandidates;
 	for (const FCB_DataTable_Question& TotalQ : AllQuestions)
 	{
@@ -288,36 +279,38 @@ void UCB_BingoBoard::RerollCellQuestion(int32 TargetIndex)
 				break;
 			}
 		}
-
-		if (!bIsAlreadyUsed)
-		{
-			AvailableCandidates.Add(TotalQ);
-		}
+		if (!bIsAlreadyUsed) AvailableCandidates.Add(TotalQ);
 	}
 
-	if (AvailableCandidates.Num() == 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("[리롤 실패] 중복되지 않는 남은 문제가 부족합니다!"));
-		return;
-	}
+	if (AvailableCandidates.Num() == 0) return;
 
+	// 2. 새로운 무작위 문제 확정 및 보드판 데이터 갱신
 	int32 RandomIdx = FMath::RandRange(0, AvailableCandidates.Num() - 1);
 	FCB_DataTable_Question NewQuestion = AvailableCandidates[RandomIdx];
 
 	CurrentRoundQuestions[TargetIndex] = NewQuestion;
 
+	// 3. 인게임 빙고판 글자(카테고리) 변경
 	if (UCB_BingoCell* TargetCell = Cells[TargetIndex])
 	{
 		TargetCell->InitCellData(TargetCell->Number, NewQuestion.Category, this, TargetIndex);
-		UE_LOG(LogTemp, Log, TEXT("[리롤 성공] %d번 칸 문제 교체 완료 -> 카테고리: %s"), TargetIndex + 1, *NewQuestion.Category);
 	}
 
+	// 4. 🌟 [동기화 핵심] 현재 열려 있는 칸을 리롤한 것이라면 화면들 새로고침
 	if (CurrentOpenedCellIndex == TargetIndex)
 	{
+		// 1) 관람객/플레이어가 보는 메인 화면 텍스트 변경
 		if (QuestionBoard)
+		{
 			QuestionBoard->SetQuestion(NewQuestion);
-		// if (IsValid(TargetHostPanel))
-		// 	TargetHostPanel->SetCurrentQuestionInfo(TargetIndex, NewQuestion);
+		}
+            
+		// 2) 🎯 진행자가 보는 호스트 패널 화면(정답/해설/유튜브 링크)도 새 문제로 실시간 원격 최신화!
+		if (IsValid(TargetHostPanel))
+		{
+			// 보드판이 새로 획득한 NewQuestion 데이터를 호스트 패널에게 역주입합니다.
+			TargetHostPanel->SetCurrentQuestionInfo(TargetIndex, NewQuestion);
+		}
 	}
 }
 
@@ -394,12 +387,21 @@ void UCB_BingoBoard::SetCellOwnerByHost(uint8 TeamNumber)
 		UE_LOG(LogTemp, Warning, TEXT("[진행자 조작 실패] 현재 선택되어 열린 빙고 칸이 없습니다!"));
 		return;
 	}
+
+	// 🌟 강제 종료/무승부는 4번으로 분리
+	if (TeamNumber == 4)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[진행자 강제 제어] 호스트에 의해 게임이 즉시 종료/무승부 처리됩니다."));
+		HandleGameOver(3); 
+		CurrentOpenedCellIndex = INDEX_NONE;
+		return;
+	}
+
 	UCB_GameInstance* GI = Cast<UCB_GameInstance>(GetGameInstance());
 
 	int32 CurrentQuestionScore = 0;
 	if (CurrentRoundQuestions.IsValidIndex(CurrentOpenedCellIndex))
 	{
-		// 🌟 데이터 테이블 구조체에서 문제 고유의 Score 값을 추출합니다!
 		CurrentQuestionScore = CurrentRoundQuestions[CurrentOpenedCellIndex].Score;
 	}
 
@@ -408,38 +410,36 @@ void UCB_BingoBoard::SetCellOwnerByHost(uint8 TeamNumber)
 	{
 		TargetCell->OccupyCell(TeamNumber);
 
-		if (TeamNumber > 0)
+		if (TeamNumber == 1 || TeamNumber == 2)
 		{
 			TargetCell->bSelected = true;
 
-			// 🌟 [4번 요구사항] 정답 판정을 내렸다면 해당 팀의 누적 점수를 증가시킵니다!
 			if (IsValid(GI))
 			{
 				if (TeamNumber == 1)
 				{
-					GI->PlusScore(CurrentQuestionScore, true); // 정답 팀 점수 200점 가산
+					GI->PlusScore(CurrentQuestionScore, true);
 				}
 				else if (TeamNumber == 2)
 				{
-					GI->PlusScore(CurrentQuestionScore, false); // 정답 팀 점수 200점 가산
+					GI->PlusScore(CurrentQuestionScore, false);
 				}
 			}
 		}
 		else
 		{
-			TargetCell->bSelected = false;
+			// TeamNumber == 3 (오답): 점수는 없지만 선택 완료로 표시
+			TargetCell->bSelected = true;
 		}
 
 		UE_LOG(LogTemp, Log, TEXT("[진행자 제어] %d번 빙고 칸이 %d번 팀에 의해 점령되었습니다."), CurrentOpenedCellIndex + 1, TeamNumber);
 	}
 
-	// 🌟 [4번 계속] 바뀐 점수를 점수판 UI(BingoScoreBoard)에 노출시키는 연동 함수 호출 기점
 	if (IsValid(BingoScoreBoard) && IsValid(GI))
 	{
 		BingoScoreBoard->RefreshScoreUI();
 	}
 
-	// 빙고 줄 수 체크
 	CheckBingo();
 
 	CurrentOpenedCellIndex = INDEX_NONE;
