@@ -21,8 +21,8 @@ public class CrazyBingo : ModuleRules
 			"CommonUI", 
 			"CommonInput",
 			"Paper2D",
-			// GAS
-			// "DesktopPlatform",
+			"RenderCore",
+			"RHI",
 			"WebBrowser",
 			"WebBrowserWidget",
 			"ImageWrapper",
@@ -30,21 +30,19 @@ public class CrazyBingo : ModuleRules
 			"GameplayTags"
 		});
 
+		if (Target.Platform == UnrealTargetPlatform.Win64)
+		{
+			PublicSystemLibraries.Add("comdlg32.lib");
+		}
+		
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 		
 		PublicIncludePaths.AddRange(new string[]
 		{
-			// 현재 모듈의 Source 폴더 경로를 포함 경로에 추가합니다.
-			// 이렇게 하면 "UI/CB_BingoBoard.h" 처럼 내부 폴더 경로로 접근이 가능해집니다.
 			ModuleDirectory,
 			"CrazyBingo" 
 		});
-		// Uncomment if you are using Slate UI
-		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-
-		// Uncomment if you are using online features
-		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
-
+	
 		// To include OnlineSubsystemSteam, add it to the plugins section in your uproject file with the Enabled attribute set to true
 	}
 }
