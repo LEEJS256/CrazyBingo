@@ -64,10 +64,12 @@ void UCB_BingoCell::OccupyCell(uint8 TeamNumber)
 
 		UE_LOG(LogTemp, Log, TEXT("[세포 갱신] %d번 세포가 B팀 색상으로 채워졌습니다."), CellIndex + 1);
 	}
+	//오답용
 	else if (TeamNumber == 3)
 	{
 		CellBackgroundBorder->SetBrushColor(FLinearColor(0.45f, 0.08f, 0.08f, 1.0f));
 	}
+	//아무것도 안눌렀을때
 	else
 	{
 		CellBackgroundBorder->SetBrushColor(FLinearColor(0.25f, 0.28f, 0.35f, 1.0f));
