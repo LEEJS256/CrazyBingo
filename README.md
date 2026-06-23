@@ -1,7 +1,7 @@
 # 🎮 크레이지 빙고 (Crazy Bingo) - 커스텀 레크레이션 빙고 게임
 > 대규모 참가자(20~30명) 대상 실시간 레크리에이션 퀴즈 게임입니다.
 > 
-> * **게임 빌드 다운로드:** [🚀 크레이지 빙고 최신 빌드 다운로드 (Google Drive)](https://drive.google.com/file/d/1UEKkGRAUm1rD3M6npC_gbkJiwZJxJ0et/view?usp=sharing)
+> * **게임 빌드 다운로드:** [🚀 크레이지 빙고 최신 빌드 다운로드 (Google Drive)](https://drive.google.com/file/d/18lKFd3WIpTdbZ9AhBHmfxwHpVKcgXD__/view?usp=sharing)
 > * **프로젝트 시연 영상:** [📺 유튜브(YouTube) 시연 영상 보러가기](https://youtu.be/CJASaHo2Tj4)
 ---
 
