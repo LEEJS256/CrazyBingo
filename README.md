@@ -3,6 +3,7 @@
 > 
 > * **게임 빌드 다운로드:** [🚀 크레이지 빙고 최신 빌드 다운로드 (Google Drive)](https://drive.google.com/file/d/18lKFd3WIpTdbZ9AhBHmfxwHpVKcgXD__/view?usp=sharing)
 > * **프로젝트 시연 영상:** [📺 유튜브(YouTube) 시연 영상 보러가기](https://youtu.be/CJASaHo2Tj4)
+> * **프로젝트 상세설명 영상:** [📺 유튜브(YouTube) 설명 영상 보러가기](https://youtu.be/KaXXglEtfqY)
 ---
 
 ## 📌 1. 프로젝트 소개
