@@ -113,8 +113,8 @@ void UCB_GameSetup::OnLaunchGameClicked()
 	UCB_HostPanel* HostPanel = CreateWidget<UCB_HostPanel>(PC, HostPanelClass);
 	if (!IsValid(HostPanel)) return;
 
-	HostPanel->TargetBingoBoard = BingoBoard;
-	BingoBoard->TargetHostPanel = HostPanel;
+	// HostPanel->TargetBingoBoard = BingoBoard;
+	// BingoBoard->TargetHostPanel = HostPanel;
 
 	// 8. 독립 윈도우 창(SWindow) 띄우기
 	TSharedRef<SWindow> NewWindow = SNew(SWindow)
