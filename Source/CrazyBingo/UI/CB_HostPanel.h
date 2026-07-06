@@ -16,8 +16,8 @@ class CRAZYBINGO_API UCB_HostPanel : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	UPROPERTY(BlueprintReadWrite, Category = "Host")
-	class UCB_BingoBoard* TargetBingoBoard;
+	// UPROPERTY(BlueprintReadWrite, Category = "Host")
+	// class UCB_BingoBoard* TargetBingoBoard;
 	
 	void SetCurrentQuestionInfo(int32 CellIndex, const FCB_DataTable_Question& QuestionData);
 	

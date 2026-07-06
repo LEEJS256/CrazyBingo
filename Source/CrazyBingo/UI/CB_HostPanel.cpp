@@ -5,6 +5,7 @@
 #include "UI/CB_BingoBoard.h"
 #include "Components/TextBlock.h"
 #include "Components/Button.h"
+#include "GameInstance/CB_BingoEventSubsystem.h"
 
 
 void UCB_HostPanel::SetCurrentQuestionInfo(int32 CellIndex, const FCB_DataTable_Question& QuestionData)
@@ -75,6 +76,12 @@ void UCB_HostPanel::SetCurrentQuestionInfo(int32 CellIndex, const FCB_DataTable_
 void UCB_HostPanel::NativeConstruct()
 {
 	Super::NativeConstruct();
+
+	if (UCB_BingoEventSubsystem* EventSubsystem = GetGameInstance()->GetSubsystem<UCB_BingoEventSubsystem>())
+	{
+		EventSubsystem->OnQuestionUpdated.AddUObject(this, &UCB_HostPanel::SetCurrentQuestionInfo);
+	}
+
 	if (Btn_TeamA_Win) Btn_TeamA_Win->OnClicked.AddDynamic(this, &UCB_HostPanel::OnTeamAWinClicked);
 	if (Btn_TeamB_Win) Btn_TeamB_Win->OnClicked.AddDynamic(this, &UCB_HostPanel::OnTeamBWinClicked);
 	if (Btn_WrongAnswer) Btn_WrongAnswer->OnClicked.AddDynamic(this, &UCB_HostPanel::OnWrongAnswerClicked);
@@ -89,37 +96,35 @@ void UCB_HostPanel::RerollCellQuestion()
 		return;
 	}
 	
-	if (IsValid(TargetBingoBoard))
+	if (UCB_BingoEventSubsystem* EventSubsystem = GetGameInstance()->GetSubsystem<UCB_BingoEventSubsystem>())
 	{
-		TargetBingoBoard->RerollCellQuestion(CachedCellIndex);
-		UE_LOG(LogTemp, Log, TEXT("[호스트패널] %d번 칸에 대한 문제 리롤을 보드판에 요청했습니다."), CachedCellIndex + 1);
+		// 저장해 둔 인덱스를 정확하게 던져줍니다.
+		EventSubsystem->OnRerollRequest.Broadcast(CachedCellIndex);
+		UE_LOG(LogTemp, Log, TEXT("[호스트패널] %d번 칸에 대한 문제 리롤을 서브시스템에 방송했습니다."), CachedCellIndex + 1);
 	}
 	
 }
 
 void UCB_HostPanel::OnTeamAWinClicked()
 {
-	if (IsValid(TargetBingoBoard))
+	if (UCB_BingoEventSubsystem* EventSubsystem = GetGameInstance()->GetSubsystem<UCB_BingoEventSubsystem>())
 	{
-		TargetBingoBoard->SetCellOwnerByHost(1);
-		UE_LOG(LogTemp, Log, TEXT("[호스트패널] A팀 정답 처리를 독립 무전으로 보드에 통보했습니다."));
+		EventSubsystem->OnCellOwnerCommand.Broadcast(1);
 	}
 }
 
 void UCB_HostPanel::OnTeamBWinClicked()
 {
-	if (IsValid(TargetBingoBoard))
+	if (UCB_BingoEventSubsystem* EventSubsystem = GetGameInstance()->GetSubsystem<UCB_BingoEventSubsystem>())
 	{
-		TargetBingoBoard->SetCellOwnerByHost(2);
+		EventSubsystem->OnCellOwnerCommand.Broadcast(2);
 	}
 }
 
 void UCB_HostPanel::OnWrongAnswerClicked()
 {
-	if (IsValid(TargetBingoBoard))
+	if (UCB_BingoEventSubsystem* EventSubsystem = GetGameInstance()->GetSubsystem<UCB_BingoEventSubsystem>())
 	{
-		// A팀 점령 (1번 번호 넘기기)
-		TargetBingoBoard->SetCellOwnerByHost(3);
-		UE_LOG(LogTemp, Log, TEXT("[호스트패널] A팀 정답 처리를 독립 무전으로 보드에 통보했습니다."));
+		EventSubsystem->OnCellOwnerCommand.Broadcast(3);
 	}
 }
