@@ -13,6 +13,7 @@
 #include "Components/TextBlock.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "GameInstance/CB_BingoEventSubsystem.h"
 #include "GameInstance/CB_GameInstance.h"
 #include "Kismet/GameplayStatics.h"
 
@@ -48,11 +49,7 @@ void UCB_BingoBoard::HandleGameOver(uint8 WinningTeamID)
 	// 화면에 장착
 	ResultWidget->AddToViewport(99);
 
-	// 진행자용 호스트 패널 닫기
-	if (IsValid(TargetHostPanel))
-	{
-		TargetHostPanel->SetVisibility(ESlateVisibility::Collapsed);
-	}
+
 }
 
 void UCB_BingoBoard::OnCellSelected(int32 SelectedIndex)
@@ -69,15 +66,12 @@ void UCB_BingoBoard::OnCellSelected(int32 SelectedIndex)
 
 		UE_LOG(LogTemp, Log, TEXT("[보드] QuestionBoard 연동 완료: %s"), *TargetQuestion.QuestionText);
 
-		if (IsValid(TargetHostPanel))
+		if (UCB_BingoEventSubsystem* EventSubsystem = GetGameInstance()->GetSubsystem<UCB_BingoEventSubsystem>())
 		{
-			TargetHostPanel->SetCurrentQuestionInfo(SelectedIndex, TargetQuestion);
+			EventSubsystem->OnQuestionUpdated.Broadcast(SelectedIndex, TargetQuestion);
 		}
 	}
-
-
-	// 4. 셀 상태가 바뀌었으니 빙고가 완성되었는지 실시간 체크
-	// CheckBingo();
+	
 }
 
 void UCB_BingoBoard::InitBoard(int32 InBoardSize)
@@ -305,12 +299,12 @@ void UCB_BingoBoard::RerollCellQuestion(int32 TargetIndex)
 			QuestionBoard->SetQuestion(NewQuestion);
 		}
             
-		// 2) 🎯 진행자가 보는 호스트 패널 화면(정답/해설/유튜브 링크)도 새 문제로 실시간 원격 최신화!
-		if (IsValid(TargetHostPanel))
-		{
-			// 보드판이 새로 획득한 NewQuestion 데이터를 호스트 패널에게 역주입합니다.
-			TargetHostPanel->SetCurrentQuestionInfo(TargetIndex, NewQuestion);
-		}
+
+		// if (IsValid(TargetHostPanel))
+		// {
+		// 	// 보드판이 새로 획득한 NewQuestion 데이터를 호스트 패널에게 역주입합니다.
+		// 	TargetHostPanel->SetCurrentQuestionInfo(TargetIndex, NewQuestion);
+		// }
 	}
 }
 
@@ -319,6 +313,19 @@ void UCB_BingoBoard::NativeConstruct()
 	Super::NativeConstruct();
 	// InitBoard();
 
+	if (Btn_ToggleGridSize)
+	{
+		Btn_ToggleGridSize->OnClicked.AddDynamic(this, &UCB_BingoBoard::OnToggleGridSizeClicked);
+	}
+
+	if (UCB_BingoEventSubsystem* EventSubsystem = GetGameInstance()->GetSubsystem<UCB_BingoEventSubsystem>())
+	{
+		// 2. 호스트 패널이 쏘는 이벤트에 내 멤버 함수 바인딩
+		EventSubsystem->OnCellOwnerCommand.AddUObject(this, &UCB_BingoBoard::SetCellOwnerByHost);
+		EventSubsystem->OnRerollRequest.AddUObject(this, &UCB_BingoBoard::RerollCellQuestion);
+	}
+
+	// 3. UI 컴포넌트 자체 다이내믹 바인딩 (UFUNCTION 필요)
 	if (Btn_ToggleGridSize)
 	{
 		Btn_ToggleGridSize->OnClicked.AddDynamic(this, &UCB_BingoBoard::OnToggleGridSizeClicked);

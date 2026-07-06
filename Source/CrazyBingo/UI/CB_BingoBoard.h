@@ -39,8 +39,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Bingo|Host")
 	void SetCellOwnerByHost(uint8 TeamNumber);
 
-	UPROPERTY(BlueprintReadWrite, Category = "Host")
-	class UCB_HostPanel* TargetHostPanel;
+	// UPROPERTY(BlueprintReadWrite, Category = "Host")
+	// class UCB_HostPanel* TargetHostPanel;
 
 	// 호스트 패널이 호출해 줄 진짜 리롤 처리 함수
 	void RerollCellQuestion(int32 TargetIndex);
